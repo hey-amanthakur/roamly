@@ -1,0 +1,14 @@
+.bookmarks {
+  display: flex;
+}
+
+.bookmarksMain {
+  flex: 9;
+}
+
+.bookmarksTitle {
+  text-align: center;
+  margin: 20px;
+  font-family: "Lora", serif;
+  font-size: 28px;
+}
