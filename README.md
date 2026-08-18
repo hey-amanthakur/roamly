@@ -132,25 +132,25 @@ npm start
 | Service | URL |
 |---------|-----|
 | **Client** | http://localhost:3000 |
-| **API** | http://localhost:5000/api |
+| **API** | http://localhost:5001/api |
 | **MongoDB** | mongodb://localhost:27017 |
 
 ### Seed Categories
 
 ```bash
-curl -X POST http://localhost:5000/api/categories \
+curl -X POST http://localhost:5001/api/categories \
   -H "Content-Type: application/json" \
   -d '{"name":"Adventure"}'
 
-curl -X POST http://localhost:5000/api/categories \
+curl -X POST http://localhost:5001/api/categories \
   -H "Content-Type: application/json" \
   -d '{"name":"Budget"}'
 
-curl -X POST http://localhost:5000/api/categories \
+curl -X POST http://localhost:5001/api/categories \
   -H "Content-Type: application/json" \
   -d '{"name":"Solo"}'
 
-curl -X POST http://localhost:5000/api/categories \
+curl -X POST http://localhost:5001/api/categories \
   -H "Content-Type: application/json" \
   -d '{"name":"Luxury"}'
 ```
@@ -292,9 +292,9 @@ travel-experience-sharing-platform/
 |----------|-------------|---------|
 | `MONGO_URL` | MongoDB connection string | `mongodb://localhost:27017/travel-blog` |
 | `JWT_SECRET` | Secret key for JWT signing | — (required) |
-| `PORT` | Server port | `5000` |
-| `REACT_APP_API_URL` | API base URL for client | `http://localhost:5000/api` |
-| `REACT_APP_IMAGES_URL` | Images base URL for client | `http://localhost:5000/images` |
+| `PORT` | Server port | `5001` |
+| `REACT_APP_API_URL` | API base URL for client | `http://localhost:5001/api` |
+| `REACT_APP_IMAGES_URL` | Images base URL for client | `http://localhost:5001/images` |
 
 ## Contributing
 

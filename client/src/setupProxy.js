@@ -4,14 +4,14 @@ module.exports = function (app) {
   app.use(
     "/api",
     createProxyMiddleware({
-      target: "http://localhost:5000",
+      target: "http://localhost:5001",
       changeOrigin: true,
     })
   );
   app.use(
     "/images",
     createProxyMiddleware({
-      target: "http://localhost:5000",
+      target: "http://localhost:5001",
       changeOrigin: true,
     })
   );

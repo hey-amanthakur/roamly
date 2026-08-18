@@ -7,7 +7,7 @@ Docker Compose runs 3 services for local development:
 | Service  | Image                | Port  | Purpose              |
 |----------|----------------------|-------|----------------------|
 | `client` | node:18-alpine       | 3000  | React dev server     |
-| `server` | node:18-alpine       | 5000  | Express API          |
+| `server` | node:18-alpine       | 5001  | Express API          |
 | `mongo`  | mongo:5              | 27017 | MongoDB database     |
 
 ## Quick Start
@@ -60,7 +60,7 @@ Copy `.env.example` to `.env` and configure:
 ```env
 MONGO_URL=mongodb://mongo:27017/travel-blog
 JWT_SECRET=your-secret-key-change-this
-PORT=5000
+PORT=5001
 ```
 
 > When running in Docker, the MongoDB hostname is `mongo` (the service name),
@@ -78,9 +78,9 @@ PORT=5000
 
 All services communicate on the `travel-net` Docker network.
 
-- Client → Server: `http://server:5000`
+- Client → Server: `http://server:5001`
 - Server → Mongo: `mongodb://mongo:27017`
-- External access: `localhost:3000` (client), `localhost:5000` (API)
+- External access: `localhost:3000` (client), `localhost:5001` (API)
 
 ## Troubleshooting
 
@@ -89,7 +89,7 @@ All services communicate on the `travel-net` Docker network.
 ```bash
 # Find and kill the process
 lsof -ti:3000 | xargs kill -9
-lsof -ti:5000 | xargs kill -9
+lsof -ti:5001 | xargs kill -9
 lsof -ti:27017 | xargs kill -9
 ```
 
@@ -103,7 +103,7 @@ docker compose logs mongo
 
 ### Client not connecting to API
 
-Check `client/package.json` proxy setting — it should point to `http://localhost:5000` for local Docker dev. The Dockerfile handles this automatically.
+Check `client/package.json` proxy setting — it should point to `http://localhost:5001` for local Docker dev. The Dockerfile handles this automatically.
 
 ### Fresh start (reset database)
 
