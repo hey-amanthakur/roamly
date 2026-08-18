@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./locationInput.css";
 
 const PRESET_LOCATIONS = [
   { name: "Paris, France", city: "Paris", country: "France", lat: 48.8566, lng: 2.3522 },

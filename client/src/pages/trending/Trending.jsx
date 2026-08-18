@@ -3,7 +3,6 @@ import axios from "axios";
 import { API_URL } from "../../config";
 import Posts from "../../components/posts/Posts";
 import SideBar from "../../components/sidebar/SideBar";
-import "./trending.css";
 
 export default function Trending() {
   const [posts, setPosts] = useState([]);

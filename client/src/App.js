@@ -10,12 +10,17 @@ import Trending from "./pages/trending/Trending";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Profile from "./pages/profile/Profile";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { Context } from "./context/Context";
 import "./app.css";
 
 function App() {
   const { user, theme } = useContext(Context);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
+
   return (
     <Router>
       <div className={`app ${theme}`}>

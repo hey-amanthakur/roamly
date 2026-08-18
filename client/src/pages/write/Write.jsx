@@ -3,7 +3,6 @@ import axios from "axios";
 import { Context } from "../../context/Context";
 import { API_URL } from "../../config";
 import LocationInput from "../../components/locationInput/LocationInput";
-import "./write.css";
 
 export default function Write() {
   const [title, setTitle] = useState("");
@@ -14,7 +13,7 @@ export default function Write() {
   const [location, setLocation] = useState({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { user, token } = useContext(Context);
+  const { token } = useContext(Context);
 
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files);

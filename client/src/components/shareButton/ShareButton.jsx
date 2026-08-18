@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./shareButton.css";
 
 export default function ShareButton({ postId, title }) {
   const [copied, setCopied] = useState(false);

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
 import { API_URL } from "../../config";
-import "./newsletter.css";
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");

@@ -3,7 +3,6 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { Context } from "../../context/Context";
 import { API_URL } from "../../config";
-import "./dashboard.css";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);

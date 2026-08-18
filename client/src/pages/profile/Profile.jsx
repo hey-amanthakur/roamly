@@ -5,7 +5,6 @@ import { Context } from "../../context/Context";
 import { API_URL, IMAGES_URL } from "../../config";
 import Posts from "../../components/posts/Posts";
 import SideBar from "../../components/sidebar/SideBar";
-import "./profile.css";
 
 export default function Profile() {
   const { username } = useParams();
@@ -13,7 +12,7 @@ export default function Profile() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
-  const { user, token, dispatch } = useContext(Context);
+  const { user, token } = useContext(Context);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
 

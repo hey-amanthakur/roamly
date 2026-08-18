@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./photoGallery.css";
 
 export default function PhotoGallery({ photos }) {
   const [selectedIndex, setSelectedIndex] = useState(null);

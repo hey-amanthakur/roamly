@@ -2,11 +2,16 @@ import { useContext, useEffect, useState } from "react";
 import Header from "../../components/header/Header";
 import Posts from "../../components/posts/Posts";
 import Sidebar from "../../components/sidebar/SideBar";
-import "./homepage.css";
 import axios from "axios";
-import { useLocation } from "react-router";
+import { useLocation, useHistory } from "react-router";
 import { API_URL } from "../../config";
 import { Context } from "../../context/Context";
+
+const CATEGORIES = [
+  { key: "travel", label: "Travel", icon: "🌍" },
+  { key: "food", label: "Food", icon: "🍜" },
+  { key: "code", label: "Code", icon: "💻" },
+];
 
 export default function Homepage() {
   const [posts, setPosts] = useState([]);
@@ -16,12 +21,21 @@ export default function Homepage() {
   const [pages, setPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [sortBy, setSortBy] = useState("");
+  const [activeCategory, setActiveCategory] = useState("");
   const { search } = useLocation();
+  const history = useHistory();
   const { token } = useContext(Context);
 
   const searchParams = new URLSearchParams(search);
   const searchQuery = searchParams.get("search") || "";
   const tagQuery = searchParams.get("tag") || "";
+  const catQuery = searchParams.get("cat") || "";
+
+  useEffect(() => {
+    if (catQuery && CATEGORIES.find(c => c.key === catQuery)) {
+      setActiveCategory(catQuery);
+    }
+  }, [catQuery]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -34,13 +48,14 @@ export default function Homepage() {
         } else {
           let params = `page=${page}&limit=10`;
           if (tagQuery) params += `&tag=${tagQuery}`;
+          if (activeCategory) params += `&cat=${activeCategory}`;
           if (sortBy) params += `&sort=${sortBy}`;
           url = `${API_URL}/posts?${params}`;
         }
         const res = await axios.get(url);
-        setPosts(searchQuery ? res.data.posts : res.data.posts);
-        setPages(searchQuery ? res.data.pages : res.data.pages);
-        setTotal(searchQuery ? res.data.total : res.data.total);
+        setPosts(res.data.posts);
+        setPages(res.data.pages);
+        setTotal(res.data.total);
       } catch (err) {
         setError("Failed to load posts");
       } finally {
@@ -48,11 +63,21 @@ export default function Homepage() {
       }
     };
     fetchPosts();
-  }, [search, page, sortBy, searchQuery, tagQuery]);
+  }, [search, page, sortBy, searchQuery, tagQuery, activeCategory]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, sortBy]);
+  }, [search, sortBy, activeCategory]);
+
+  const handleCategoryClick = (catKey) => {
+    if (activeCategory === catKey) {
+      setActiveCategory("");
+      history.push("/");
+    } else {
+      setActiveCategory(catKey);
+      history.push(`/?cat=${catKey}`);
+    }
+  };
 
   return (
     <>
@@ -73,32 +98,47 @@ export default function Homepage() {
           )}
 
           {!searchQuery && !tagQuery && (
-            <div className="homeSort">
-              <button
-                className={sortBy === "" ? "active" : ""}
-                onClick={() => setSortBy("")}
-              >
-                Latest
-              </button>
-              <button
-                className={sortBy === "popular" ? "active" : ""}
-                onClick={() => setSortBy("popular")}
-              >
-                Popular
-              </button>
-              <button
-                className={sortBy === "trending" ? "active" : ""}
-                onClick={() => setSortBy("trending")}
-              >
-                Trending
-              </button>
-              <button
-                className={sortBy === "most_discussed" ? "active" : ""}
-                onClick={() => setSortBy("most_discussed")}
-              >
-                Most Discussed
-              </button>
-            </div>
+            <>
+              <div className="categoryChips" style={{ padding: "0 20px" }}>
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.key}
+                    className={`categoryChip ${activeCategory === cat.key ? "active" : ""}`}
+                    data-cat={cat.key}
+                    onClick={() => handleCategoryClick(cat.key)}
+                  >
+                    <span className="chipIcon">{cat.icon}</span>
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+              <div className="homeSort">
+                <button
+                  className={sortBy === "" ? "active" : ""}
+                  onClick={() => setSortBy("")}
+                >
+                  Latest
+                </button>
+                <button
+                  className={sortBy === "popular" ? "active" : ""}
+                  onClick={() => setSortBy("popular")}
+                >
+                  Popular
+                </button>
+                <button
+                  className={sortBy === "trending" ? "active" : ""}
+                  onClick={() => setSortBy("trending")}
+                >
+                  Trending
+                </button>
+                <button
+                  className={sortBy === "most_discussed" ? "active" : ""}
+                  onClick={() => setSortBy("most_discussed")}
+                >
+                  Most Discussed
+                </button>
+              </div>
+            </>
           )}
 
           {loading ? (

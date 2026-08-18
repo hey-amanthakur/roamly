@@ -2,7 +2,6 @@ import { useContext, useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 import { Context } from "../../context/Context";
 import { IMAGES_URL } from "../../config";
-import "./topbar.css";
 
 export default function TopBar() {
   const { user, dispatch, theme } = useContext(Context);
@@ -31,44 +30,45 @@ export default function TopBar() {
   return (
     <div className={`top ${theme}`}>
       <div className="topLeft">
-        <i className="topIcon fab fa-facebook-square"></i>
-        <i className="topIcon fab fa-twitter-square"></i>
-        <i className="topIcon fab fa-instagram-square"></i>
+        <Link to="/" className="topLogo">
+          <span className="logo-dot"></span>
+          wanderlog
+        </Link>
       </div>
 
       <div className={`topCenter ${mobileMenuOpen ? "open" : ""}`}>
         <ul className="topList">
           <li className="topListItem" onClick={() => setMobileMenuOpen(false)}>
             <Link className="link" to="/">
-              HOME
+              Home
             </Link>
           </li>
           <li className="topListItem" onClick={() => setMobileMenuOpen(false)}>
             <Link className="link" to="/trending">
-              TRENDING
+              Trending
             </Link>
           </li>
           {user && (
             <>
               <li className="topListItem" onClick={() => setMobileMenuOpen(false)}>
                 <Link className="link" to="/write">
-                  WRITE
+                  Write
                 </Link>
               </li>
               <li className="topListItem" onClick={() => setMobileMenuOpen(false)}>
                 <Link className="link" to="/bookmarks">
-                  BOOKMARKS
+                  Bookmarks
                 </Link>
               </li>
               <li className="topListItem" onClick={() => setMobileMenuOpen(false)}>
                 <Link className="link" to="/dashboard">
-                  DASHBOARD
+                  Dashboard
                 </Link>
               </li>
             </>
           )}
           <li className="topListItem" onClick={handleLogout}>
-            {user && "LOGOUT"}
+            {user && "Logout"}
           </li>
         </ul>
       </div>

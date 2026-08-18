@@ -6,7 +6,6 @@ import { API_URL, IMAGES_URL } from "../../config";
 import ShareButton from "../shareButton/ShareButton";
 import ReportModal from "../reportModal/ReportModal";
 import PhotoGallery from "../photoGallery/PhotoGallery";
-import "./singlePost.css";
 
 export default function SinglePost() {
   const location = useLocation();

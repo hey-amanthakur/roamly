@@ -3,10 +3,15 @@ import { Link } from "react-router-dom";
 import { Context } from "../../context/Context";
 import { API_URL, IMAGES_URL } from "../../config";
 import axios from "axios";
-import "./post.css";
+
+const CAT_COLORS = {
+  travel: "travel",
+  food: "food",
+  code: "code",
+};
 
 export default function Post({ post }) {
-  const { user, token } = useContext(Context);
+  const { token } = useContext(Context);
 
   const handleBookmark = async (e) => {
     e.preventDefault();
@@ -33,11 +38,17 @@ export default function Post({ post }) {
       )}
       <div className="postInfo">
         <div className="postCats">
-          {post.categories?.map((c, i) => (
-            <Link key={i} to={`/?cat=${typeof c === "string" ? c : c.name}`} className="link">
-              <span className="postCat">{typeof c === "string" ? c : c.name}</span>
-            </Link>
-          ))}
+          {post.categories?.map((c, i) => {
+            const catName = typeof c === "string" ? c : c.name;
+            const catKey = catName.toLowerCase().replace(/\s+/g, "_");
+            return (
+              <Link key={i} to={`/?cat=${catName}`} className="link">
+                <span className="postCat" data-cat={CAT_COLORS[catKey] || ""}>
+                  {catName}
+                </span>
+              </Link>
+            );
+          })}
           {post.tags?.slice(0, 3).map((tag, i) => (
             <Link key={`tag-${i}`} to={`/?tag=${tag}`} className="link">
               <span className="postTag">#{tag}</span>
@@ -55,7 +66,6 @@ export default function Post({ post }) {
             {new Date(post.createdAt).toDateString()}
           </span>
         </div>
-        <hr />
       </div>
       <p className="postDesc">{post.desc}</p>
       <div className="postFooter">

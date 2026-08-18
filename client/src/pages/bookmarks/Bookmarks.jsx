@@ -4,7 +4,6 @@ import { Context } from "../../context/Context";
 import { API_URL } from "../../config";
 import Posts from "../../components/posts/Posts";
 import SideBar from "../../components/sidebar/SideBar";
-import "./bookmarks.css";
 
 export default function Bookmarks() {
   const [posts, setPosts] = useState([]);
