@@ -18,6 +18,13 @@
     align-items: center;
 }
 
+.postCats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+}
+
 .postCat {
     font-family: "Varela Round", Arial, Helvetica, sans-serif;
     font-weight: 400;
@@ -25,7 +32,16 @@
     color: #be9656;
     line-height: 19px;
     margin-top: 15px;
-    margin-right: 10px;
+    cursor: pointer;
+}
+
+.postTag {
+    font-family: "Varela Round", Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    font-size: 11px;
+    color: teal;
+    line-height: 19px;
+    margin-top: 15px;
     cursor: pointer;
 }
 
@@ -37,25 +53,70 @@
     cursor: pointer;
 }
 
+.postMeta {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.postAuthor {
+    font-family: "Varela Round", Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    color: teal;
+    cursor: pointer;
+}
+
 .postDate {
-font-family: "Lora", serif;
-font-style: italic;
-font-size: 13px;
-font-weight: 400;
-color: #999999;
-margin-top: 15px;
+    font-family: "Lora", serif;
+    font-style: italic;
+    font-size: 13px;
+    font-weight: 400;
+    color: #999999;
+    margin-top: 0;
 }
 
 .postDesc {
-font-family: "Varela Round", Arial, Helvetica, sans-serif;
-font-weight: 400;
-font-size: 14px;
-line-height: 24px;
-color: #444444;
-margin-top: 15px;
-overflow: hidden;
-text-overflow: ellipsis;
-display: -webkit-box;
--webkit-line-clamp: 4;
--webkit-box-orient: vertical;
+    font-family: "Varela Round", Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    color: #444444;
+    margin-top: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+}
+
+.postFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.postStats {
+    display: flex;
+    gap: 12px;
+    font-family: "Varela Round", sans-serif;
+    font-size: 12px;
+    color: #999;
+}
+
+.postStats i {
+    margin-right: 3px;
+}
+
+.postBookmark {
+    cursor: pointer;
+    color: #999;
+    transition: color 0.2s;
+}
+
+.postBookmark:hover {
+    color: teal;
 }

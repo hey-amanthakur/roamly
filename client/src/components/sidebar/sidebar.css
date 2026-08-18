@@ -34,6 +34,8 @@
     margin-top: 15px;
     width: 250px;
     height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
 }
 
 .sidebarItem > p {
@@ -63,4 +65,16 @@
 .sidebarIcon {
     font-size: 16px;
     margin-left: 10px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.sidebarIcon:hover {
+    color: teal;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
 }
