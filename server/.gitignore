@@ -1,5 +1,6 @@
 .env
 
-images
+images/*
+!images/.gitkeep
 
 node_modules
