@@ -13,16 +13,11 @@
     justify-content: space-between;
 }
 
-.settingsTitleUpdate {
+.settingsUpdateTitle {
     font-size: 30px;
     margin-bottom: 20px;
     color: lightcoral;
-}
-
-.settingsTitleDelete {
-    color: red;
-    font-size: 12px;
-    cursor: pointer;
+    font-family: "Lora", serif;
 }
 
 .settingsForm {
@@ -59,17 +54,10 @@
     cursor: pointer;
 }
 
-.settingsPPButton:focus {
-    outline-style: none;
-}
-
 .settingsForm > label {
     font-size: 20px;
     margin-top: 20px;
-}
-
-.settingsPPInput {
-    width: 30%;
+    font-family: "Varela Round", sans-serif;
 }
 
 .settingsForm > input {
@@ -79,9 +67,50 @@
     height: 30px;
     border: none;
     border-bottom: 1px solid lightgray;
+    font-family: "Varela Round", sans-serif;
 }
 
-.settingsSubmitButton {
+.settingsForm > input:focus {
+    outline: none;
+    border-color: teal;
+}
+
+.settingsTheme {
+    margin-top: 20px;
+}
+
+.settingsTheme label {
+    font-size: 20px;
+    font-family: "Varela Round", sans-serif;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.themeBtn {
+    padding: 10px 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: "Varela Round", sans-serif;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.themeBtn.light {
+    background: white;
+    color: #333;
+}
+
+.themeBtn.dark {
+    background: #1a1a2e;
+    color: #eee;
+    border-color: #444;
+}
+
+.settingsSubmit {
     align-self: center;
     width: 150px;
     border: none;
@@ -91,11 +120,10 @@
     padding: 10px;
     margin-top: 20px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-family: "Varela Round", sans-serif;
+    font-size: 16px;
 }
 
-.settingsSubmitButton:hover {
+.settingsSubmit:hover {
     background-color: rgb(1, 114, 114);
 }

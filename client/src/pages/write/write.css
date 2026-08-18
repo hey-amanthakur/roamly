@@ -2,10 +2,17 @@
     padding-top: 50px;
 }
 
-.writeImg {
+.writePreview {
     margin-left: 150px;
-    width: 70vw;
-    height: 250px;
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.writePreviewImg {
+    width: 200px;
+    height: 150px;
     border-radius: 10px;
     object-fit: cover;
 }
@@ -56,17 +63,113 @@
     font-size: 20px;
 }
 
-.writeSubmit {
-    position: absolute;
+.writeMeta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    margin-right: 150px;
+}
+
+.writeMetaField {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.writeMetaField label {
+    font-family: "Varela Round", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #444;
+}
+
+.writeMetaInput {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: "Varela Round", sans-serif;
+    font-size: 14px;
+}
+
+.writeMetaInput:focus {
+    outline: none;
+    border-color: teal;
+}
+
+.writeMetaHint {
+    font-size: 12px;
+    color: #999;
+    margin-top: 3px;
+}
+
+.writeActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 20px;
+    position: fixed;
     top: 20px;
     right: 50px;
-    color: white;
-    background-color: teal;
-    padding: 10px;
+}
+
+.writeDraftBtn {
+    color: #666;
+    background-color: #f0f0f0;
+    padding: 10px 20px;
     border: none;
     border-radius: 10px;
     font-size: 16px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
+    font-family: "Varela Round", sans-serif;
+}
+
+.writeDraftBtn:hover {
+    background-color: #ddd;
+}
+
+.writeSubmit {
+    color: white;
+    background-color: teal;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    font-family: "Varela Round", sans-serif;
+}
+
+.writeSubmit:hover {
+    background-color: #008080;
+}
+
+@media (max-width: 768px) {
+    .writeFormGroup,
+    .writePreview {
+        margin-left: 20px;
+    }
+
+    .writeMeta {
+        margin-right: 20px;
+    }
+
+    .writeInput {
+        width: 90vw;
+        font-size: 24px;
+    }
+
+    .writeText {
+        width: 90vw;
+    }
+
+    .writeActions {
+        position: static;
+        padding: 10px 20px;
+        justify-content: center;
+    }
 }

@@ -1,29 +1,34 @@
-
 import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { API_URL } from "../../config";
 import "./register.css";
 
 export default function Register() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(false);
+    setError("");
+    setLoading(true);
     try {
-      const res = await axios.post("/auth/register", {
+      await axios.post(`${API_URL}/auth/register`, {
         username,
         email,
         password,
       });
-      res.data && window.location.replace("/login");
+      window.location.replace("/login");
     } catch (err) {
-      setError(true);
+      setError(err.response?.data?.message || "Something went wrong!");
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <div className="register">
       <span className="registerTitle">Register</span>
@@ -37,7 +42,7 @@ export default function Register() {
         />
         <label>Email</label>
         <input
-          type="text"
+          type="email"
           className="registerInput"
           placeholder="Enter your email..."
           onChange={(e) => setEmail(e.target.value)}
@@ -49,7 +54,7 @@ export default function Register() {
           placeholder="Enter your password..."
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button className="registerButton" type="submit">
+        <button className="registerButton" type="submit" disabled={loading}>
           Register
         </button>
       </form>
@@ -58,7 +63,9 @@ export default function Register() {
           Login
         </Link>
       </button>
-      {error && <span style={{color:"red", marginTop:"10px"}}>Something went wrong!</span>}
+      {error && (
+        <span style={{ color: "red", marginTop: "10px" }}>{error}</span>
+      )}
     </div>
   );
 }

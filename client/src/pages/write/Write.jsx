@@ -1,41 +1,107 @@
 import { useContext, useState } from "react";
 import axios from "axios";
-
-import "./write.css";
 import { Context } from "../../context/Context";
+import { API_URL } from "../../config";
+import LocationInput from "../../components/locationInput/LocationInput";
+import "./write.css";
 
 export default function Write() {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
-  const [file, setFile] = useState(null);
-  const { user } = useContext(Context);
+  const [files, setFiles] = useState([]);
+  const [tags, setTags] = useState("");
+  const [categories, setCategories] = useState("");
+  const [location, setLocation] = useState({});
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { user, token } = useContext(Context);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const newPost = {
-      username: user.username,
-      title,
-      desc,
-    };
-    if (file) {
-      const data =new FormData();
-      const filename = Date.now() + file.name;
+  const handleFileChange = (e) => {
+    const selected = Array.from(e.target.files);
+    if (selected.length > 5) {
+      setError("Maximum 5 images allowed");
+      return;
+    }
+    setFiles(selected);
+  };
+
+  const uploadFiles = async () => {
+    const filenames = [];
+    for (const file of files) {
+      const data = new FormData();
+      const filename = Date.now() + "-" + file.name;
       data.append("name", filename);
       data.append("file", file);
-      newPost.photo = filename;
       try {
-        await axios.post("/upload", data);
-      } catch (err) {}
+        await axios.post(`${API_URL}/upload`, data, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        filenames.push(filename);
+      } catch (err) {
+        throw new Error("Failed to upload image: " + file.name);
+      }
     }
-    try {
-      const res = await axios.post("/posts", newPost);
-      window.location.replace("/post/" + res.data._id);
-    } catch (err) {}
+    return filenames;
   };
+
+  const handleSubmit = async (e, status = "published") => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const newPost = {
+      title,
+      desc,
+      status,
+      tags: tags
+        .split(",")
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean),
+      categories: categories
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean),
+      location,
+    };
+
+    if (files.length > 0) {
+      try {
+        const filenames = await uploadFiles();
+        if (filenames.length === 1) {
+          newPost.photo = filenames[0];
+        } else {
+          newPost.photos = filenames;
+        }
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+        return;
+      }
+    }
+
+    try {
+      const res = await axios.post(`${API_URL}/posts`, newPost, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (status === "draft") {
+        window.location.replace("/dashboard");
+      } else {
+        window.location.replace("/post/" + res.data._id);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to create post");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="write">
-      {file && (
-        <img className="writeImg" src={URL.createObjectURL(file)} alt="" />
+      {files.length > 0 && (
+        <div className="writePreview">
+          {files.map((file, i) => (
+            <img key={i} className="writePreviewImg" src={URL.createObjectURL(file)} alt="" />
+          ))}
+        </div>
       )}
       <form className="writeForm" onSubmit={handleSubmit}>
         <div className="writeFormGroup">
@@ -46,27 +112,73 @@ export default function Write() {
             type="file"
             id="fileInput"
             style={{ display: "none" }}
-            onChange={(e) => setFile(e.target.files[0])}
+            accept="image/*"
+            multiple
+            onChange={handleFileChange}
           />
           <input
             type="text"
             placeholder="Title"
             className="writeInput"
             autoFocus={true}
-            onChange={e=>setTitle(e.target.value)}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
           />
         </div>
+
+        <LocationInput location={location} onChange={setLocation} />
+
+        <div className="writeFormGroup writeMeta">
+          <div className="writeMetaField">
+            <label>Tags</label>
+            <input
+              type="text"
+              placeholder="e.g. beach, sunset, backpacking"
+              className="writeMetaInput"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+            />
+            <span className="writeMetaHint">Comma-separated</span>
+          </div>
+          <div className="writeMetaField">
+            <label>Categories</label>
+            <input
+              type="text"
+              placeholder="e.g. Adventure, Budget"
+              className="writeMetaInput"
+              value={categories}
+              onChange={(e) => setCategories(e.target.value)}
+            />
+            <span className="writeMetaHint">Comma-separated</span>
+          </div>
+        </div>
+
         <div className="writeFormGroup">
           <textarea
             placeholder="Tell your story..."
-            type="text"
             className="writeInput writeText"
-            onChange={e=>setDesc(e.target.value)}
+            value={desc}
+            onChange={(e) => setDesc(e.target.value)}
           ></textarea>
         </div>
-        <button className="writeSubmit" type="submit">
-          Publish
-        </button>
+
+        {error && (
+          <span style={{ color: "red", marginBottom: "10px", marginLeft: "150px" }}>{error}</span>
+        )}
+
+        <div className="writeActions">
+          <button
+            className="writeDraftBtn"
+            type="button"
+            disabled={loading}
+            onClick={(e) => handleSubmit(e, "draft")}
+          >
+            Save Draft
+          </button>
+          <button className="writeSubmit" type="submit" disabled={loading}>
+            {loading ? "Publishing..." : "Publish"}
+          </button>
+        </div>
       </form>
     </div>
   );

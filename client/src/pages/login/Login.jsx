@@ -2,6 +2,7 @@ import axios from "axios";
 import { useContext, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Context } from "../../context/Context";
+import { API_URL } from "../../config";
 import "./login.css";
 
 export default function Login() {
@@ -13,11 +14,15 @@ export default function Login() {
     e.preventDefault();
     dispatch({ type: "LOGIN_START" });
     try {
-      const res = await axios.post("/auth/login", {
+      const res = await axios.post(`${API_URL}/auth/login`, {
         username: userRef.current.value,
         password: passwordRef.current.value,
       });
-      dispatch({ type: "LOGIN_SUCCESS", payload: res.data });
+      const { token, ...userData } = res.data;
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: { user: userData, token },
+      });
     } catch (err) {
       dispatch({ type: "LOGIN_FAILURE" });
     }
