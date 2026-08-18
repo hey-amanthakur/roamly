@@ -1,0 +1,32 @@
+.shareButton {
+  position: relative;
+  display: inline-block;
+}
+
+.shareButton button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #666;
+  padding: 5px;
+  transition: color 0.2s;
+}
+
+.shareButton button:hover {
+  color: teal;
+}
+
+.copiedTooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  font-family: "Varela Round", sans-serif;
+}
