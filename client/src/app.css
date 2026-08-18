@@ -1,0 +1,97 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app {
+  transition: background-color 0.3s, color 0.3s;
+  min-height: 100vh;
+}
+
+.app.light {
+  background-color: #fff;
+  color: #333;
+}
+
+.app.dark {
+  background-color: #0f0f23;
+  color: #eee;
+}
+
+.app.dark .post {
+  background-color: #1a1a2e;
+}
+
+.app.dark .post .postDesc,
+.app.dark .post .postDate {
+  color: #bbb;
+}
+
+.app.dark .sidebar {
+  background-color: #1a1a2e;
+}
+
+.app.dark .sidebar .sidebarListItem {
+  color: #ccc;
+}
+
+.app.dark .sidebar .sidebarTitle {
+  color: #eee;
+  border-color: #444;
+}
+
+.app.dark .sidebar .sidebarItem > p {
+  color: #bbb;
+}
+
+.app.dark .settingsWrapper,
+.app.dark .singlePostWrapper {
+  color: #eee;
+}
+
+.app.dark .settingsForm > label,
+.app.dark .settingsForm > input {
+  color: #eee;
+  border-color: #444;
+}
+
+.app.dark .singlePostDesc {
+  color: #ccc;
+}
+
+.app.dark .comment {
+  color: #bbb;
+  border-color: #333;
+}
+
+.app.dark .commentForm input {
+  background-color: #16213e;
+  color: #eee;
+  border-color: #333;
+}
+
+.app.dark .pagination button {
+  background-color: #16213e;
+  color: #eee;
+  border-color: #444;
+}
+
+.app.dark .writeInput {
+  color: #eee;
+}
+
+.app.dark .writeIcon {
+  color: #aaa;
+  border-color: #666;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.link {
+  text-decoration: none;
+  color: inherit;
+}

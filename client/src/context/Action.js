@@ -1,10 +1,10 @@
-export const LoginStart = (userCredentials) => ({
+export const LoginStart = () => ({
   type: "LOGIN_START",
 });
 
-export const LoginSuccess = (user) => ({
+export const LoginSuccess = (user, token) => ({
   type: "LOGIN_SUCCESS",
-  payload: user,
+  payload: { user, token },
 });
 
 export const LoginFailure = () => ({
@@ -15,7 +15,7 @@ export const Logout = () => ({
   type: "LOGOUT",
 });
 
-export const UpdateStart = (userCredentials) => ({
+export const UpdateStart = () => ({
   type: "UPDATE_START",
 });
 
@@ -26,4 +26,8 @@ export const UpdateSuccess = (user) => ({
 
 export const UpdateFailure = () => ({
   type: "UPDATE_FAILURE",
+});
+
+export const ToggleTheme = () => ({
+  type: "TOGGLE_THEME",
 });
