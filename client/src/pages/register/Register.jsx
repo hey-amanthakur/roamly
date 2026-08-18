@@ -29,42 +29,105 @@ export default function Register() {
   };
 
   return (
-    <div className="register">
-      <span className="registerTitle">Register</span>
-      <form className="registerForm" onSubmit={handleSubmit}>
-        <label>Username</label>
-        <input
-          type="text"
-          className="registerInput"
-          placeholder="Enter your username..."
-          onChange={(e) => setUsername(e.target.value)}
-        />
-        <label>Email</label>
-        <input
-          type="email"
-          className="registerInput"
-          placeholder="Enter your email..."
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <label>Password</label>
-        <input
-          type="password"
-          className="registerInput"
-          placeholder="Enter your password..."
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button className="registerButton" type="submit" disabled={loading}>
-          Register
-        </button>
-      </form>
-      <button className="registerLoginButton">
-        <Link className="link" to="/login">
-          Login
-        </Link>
-      </button>
-      {error && (
-        <span style={{ color: "red", marginTop: "10px" }}>{error}</span>
-      )}
+    <div className="authPage">
+      <div className="authCard">
+        <div className="authHeader">
+          <div className="authLogo">
+            <div className="authLogoBox">
+              <i className="fas fa-user-plus"></i>
+            </div>
+          </div>
+          <h1 className="authTitle">Create account</h1>
+          <p className="authSubtitle">Join the community of travelers</p>
+        </div>
+
+        <form className="authForm" onSubmit={handleSubmit}>
+          <div className="authField">
+            <label htmlFor="username">Username</label>
+            <div className="authInputWrapper">
+              <i className="fas fa-user"></i>
+              <input
+                id="username"
+                type="text"
+                placeholder="Choose a username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="authField">
+            <label htmlFor="email">Email</label>
+            <div className="authInputWrapper">
+              <i className="fas fa-envelope"></i>
+              <input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="authField">
+            <label htmlFor="password">Password</label>
+            <div className="authInputWrapper">
+              <i className="fas fa-lock"></i>
+              <input
+                id="password"
+                type="password"
+                placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="authError">
+              <i className="fas fa-exclamation-circle"></i>
+              {error}
+            </div>
+          )}
+
+          <button
+            className="authButton authButtonPrimary"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? (
+              <span className="authSpinner"></span>
+            ) : (
+              <>
+                Create Account
+                <i className="fas fa-arrow-right"></i>
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="authFooter">
+          <p>
+            Already have an account?{" "}
+            <Link to="/login" className="authLink">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      <div className="authVisual">
+        <div className="authVisualContent">
+          <div className="authVisualDot"></div>
+          <h2>wanderlog</h2>
+          <p>Share your travel stories with the world</p>
+        </div>
+      </div>
     </div>
   );
 }
