@@ -18,7 +18,7 @@ services:
       - "5001:5001"
     volumes:
       - ./server:/app
-      - /app/server/node_modules
+      - /app/node_modules
       - ./server/images:/app/images
     environment:
       - MONGO_URL=mongodb://mongo:27017/travel-blog
@@ -41,6 +41,7 @@ services:
     environment:
       - REACT_APP_API_URL=http://localhost:5001/api
       - REACT_APP_IMAGES_URL=http://localhost:5001/images
+      - NODE_OPTIONS=--openssl-legacy-provider
     depends_on:
       - server
     networks:

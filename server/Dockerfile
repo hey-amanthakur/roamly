@@ -11,4 +11,4 @@ RUN mkdir -p images
 
 EXPOSE 5001
 
-CMD ["npm", "run", "dev"]
+CMD ["node", "index.js"]
