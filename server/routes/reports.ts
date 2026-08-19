@@ -1,0 +1,93 @@
+import { Router, Response } from "express";
+import Report from "../models/Report";
+import { verifyToken } from "../middleware/auth";
+import { AuthRequest } from "../types";
+
+const router = Router();
+
+/**
+ * @swagger
+ * /api/reports:
+ *   post:
+ *     summary: Submit a report
+ *     tags: [Reports]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [targetType, targetId, reason]
+ *             properties:
+ *               targetType:
+ *                 type: string
+ *                 enum: [post, comment, user]
+ *               targetId:
+ *                 type: string
+ *               reason:
+ *                 type: string
+ *                 enum: [spam, inappropriate, harassment, false-information, copyright, other]
+ *               description:
+ *                 type: string
+ *                 maxLength: 500
+ *     responses:
+ *       201:
+ *         description: Report submitted
+ *       400:
+ *         description: Validation error or duplicate report
+ *       401:
+ *         description: Not authenticated
+ */
+router.post("/", verifyToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  const { targetType, targetId, reason, description } = req.body;
+
+  if (!targetType || !targetId || !reason) {
+    res.status(400).json({
+      message: "Target type, target ID, and reason are required",
+    });
+    return;
+  }
+
+  if (!["post", "comment", "user"].includes(targetType)) {
+    res.status(400).json({ message: "Invalid target type" });
+    return;
+  }
+
+  if (
+    !["spam", "inappropriate", "harassment", "false-information", "copyright", "other"].includes(reason)
+  ) {
+    res.status(400).json({ message: "Invalid reason" });
+    return;
+  }
+
+  try {
+    const existingReport = await Report.findOne({
+      reporterId: req.user!.id,
+      targetType,
+      targetId,
+    });
+
+    if (existingReport) {
+      res.status(400).json({ message: "You have already reported this" });
+      return;
+    }
+
+    const report = new Report({
+      reporterId: req.user!.id,
+      reporterUsername: req.user!.username,
+      targetType,
+      targetId,
+      reason,
+      description: description || "",
+    });
+
+    await report.save();
+    res.status(201).json({ message: "Report submitted" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+export default router;
