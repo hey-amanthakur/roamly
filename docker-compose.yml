@@ -15,8 +15,6 @@ services:
     ports:
       - "5001:5001"
     volumes:
-      - ./server:/app
-      - /app/node_modules
       - ./server/images:/app/images
     environment:
       - MONGO_URL=mongodb://mongo:27017/travel-blog
