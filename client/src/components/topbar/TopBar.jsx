@@ -2,6 +2,7 @@ import { useContext, useState } from "react";
 import { Link, useHistory } from "react-router-dom";
 import { Context } from "../../context/Context";
 import { IMAGES_URL } from "../../config";
+import { DEFAULT_AVATAR } from "../../constants";
 
 export default function TopBar() {
   const { user, dispatch, theme } = useContext(Context);
@@ -100,7 +101,7 @@ export default function TopBar() {
               src={
                 user.profilePic
                   ? `${IMAGES_URL}/${user.profilePic}`
-                  : `${IMAGES_URL}/default-avatar.png`
+                  : `${IMAGES_URL}/${DEFAULT_AVATAR}`
               }
               alt={user.username}
             />

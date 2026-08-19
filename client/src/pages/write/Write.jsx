@@ -3,6 +3,7 @@ import axios from "axios";
 import { Context } from "../../context/Context";
 import { API_URL } from "../../config";
 import LocationInput from "../../components/locationInput/LocationInput";
+import { MAX_UPLOAD_FILES, COLORS } from "../../constants";
 
 export default function Write() {
   const [title, setTitle] = useState("");
@@ -17,7 +18,7 @@ export default function Write() {
 
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files);
-    if (selected.length > 5) {
+    if (selected.length > MAX_UPLOAD_FILES) {
       setError("Maximum 5 images allowed");
       return;
     }
@@ -162,7 +163,7 @@ export default function Write() {
         </div>
 
         {error && (
-          <span style={{ color: "red", marginBottom: "10px", marginLeft: "150px" }}>{error}</span>
+          <span style={{ color: COLORS.error, marginBottom: "10px", marginLeft: "150px" }}>{error}</span>
         )}
 
         <div className="writeActions">

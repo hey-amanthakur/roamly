@@ -6,6 +6,7 @@ import { API_URL, IMAGES_URL } from "../../config";
 import ShareButton from "../shareButton/ShareButton";
 import ReportModal from "../reportModal/ReportModal";
 import PhotoGallery from "../photoGallery/PhotoGallery";
+import { COLORS } from "../../constants";
 
 export default function SinglePost() {
   const location = useLocation();
@@ -157,7 +158,7 @@ export default function SinglePost() {
   };
 
   if (loading) return <p style={{ textAlign: "center", marginTop: "20px" }}>Loading...</p>;
-  if (error) return <p style={{ textAlign: "center", color: "red", marginTop: "20px" }}>{error}</p>;
+  if (error) return <p style={{ textAlign: "center", color: COLORS.error, marginTop: "20px" }}>{error}</p>;
 
   const allPhotos = [];
   if (post.photo) allPhotos.push(`${IMAGES_URL}/${post.photo}`);
@@ -241,7 +242,7 @@ export default function SinglePost() {
             <i
               className={`fas fa-heart ${post.isLiked ? "liked" : ""}`}
               onClick={handleLike}
-              style={{ cursor: "pointer", color: post.isLiked ? "red" : "gray", fontSize: "20px" }}
+              style={{ cursor: "pointer", color: post.isLiked ? COLORS.error : COLORS.gray, fontSize: "20px" }}
             ></i>
             <span>{post.likes?.length || 0} likes</span>
           </div>
@@ -250,7 +251,7 @@ export default function SinglePost() {
             <i
               className={`fas fa-bookmark ${post.isBookmarked ? "bookmarked" : ""}`}
               onClick={handleBookmark}
-              style={{ cursor: "pointer", fontSize: "18px", color: post.isBookmarked ? "teal" : "gray", marginRight: "15px" }}
+              style={{ cursor: "pointer", fontSize: "18px", color: post.isBookmarked ? COLORS.teal : COLORS.gray, marginRight: "15px" }}
             ></i>
             <ShareButton postId={post._id} title={post.title} />
             {user && user.username !== post.username && (
@@ -305,7 +306,7 @@ export default function SinglePost() {
                 <i
                   className="fas fa-times"
                   onClick={() => handleDeleteComment(c._id)}
-                  style={{ cursor: "pointer", marginLeft: "8px", color: "gray" }}
+                   style={{ cursor: "pointer", marginLeft: "8px", color: COLORS.gray }}
                 ></i>
               )}
             </div>

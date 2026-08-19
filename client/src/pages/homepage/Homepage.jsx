@@ -6,12 +6,7 @@ import axios from "axios";
 import { useLocation, useHistory } from "react-router";
 import { API_URL } from "../../config";
 import { Context } from "../../context/Context";
-
-const CATEGORIES = [
-  { key: "travel", label: "Travel", icon: "🌍" },
-  { key: "food", label: "Food", icon: "🍜" },
-  { key: "code", label: "Code", icon: "💻" },
-];
+import { CATEGORIES, PAGE_LIMITS, COLORS } from "../../constants";
 
 export default function Homepage() {
   const [posts, setPosts] = useState([]);
@@ -44,9 +39,9 @@ export default function Homepage() {
       try {
         let url;
         if (searchQuery) {
-          url = `${API_URL}/search?q=${encodeURIComponent(searchQuery)}&page=${page}&limit=10`;
+          url = `${API_URL}/search?q=${encodeURIComponent(searchQuery)}&page=${page}&limit=${PAGE_LIMITS.DEFAULT}`;
         } else {
-          let params = `page=${page}&limit=10`;
+          let params = `page=${page}&limit=${PAGE_LIMITS.DEFAULT}`;
           if (tagQuery) params += `&tag=${tagQuery}`;
           if (activeCategory) params += `&cat=${activeCategory}`;
           if (sortBy) params += `&sort=${sortBy}`;
@@ -146,7 +141,7 @@ export default function Homepage() {
           ) : error ? (
             <p style={{ textAlign: "center", color: "red" }}>{error}</p>
           ) : posts.length === 0 ? (
-            <p style={{ textAlign: "center", color: "#999", marginTop: "40px" }}>
+            <p style={{ textAlign: "center", color: COLORS.muted, marginTop: "40px" }}>
               No posts found. {token ? "Be the first to write!" : "Login to start writing."}
             </p>
           ) : (

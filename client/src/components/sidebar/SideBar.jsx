@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SOCIAL_LINKS, AUTHOR } from "../../constants";
 import "./sidebar.css";
 
 export default function SideBar() {
@@ -18,25 +19,25 @@ export default function SideBar() {
       <div className="sideAbout">
         <img
           className="sideAvatar"
-          src="https://avatars.githubusercontent.com/u/amanthakur"
-          alt="Aman Thakur"
+          src={SOCIAL_LINKS.avatar}
+          alt={AUTHOR.name}
           loading="lazy"
         />
-        <h3 className="sideName">Aman Thakur</h3>
+        <h3 className="sideName">{AUTHOR.name}</h3>
         <p className="sideBio">
-          Full-stack developer & travel enthusiast. Building apps by day, exploring cities by weekend.
+          {AUTHOR.bio}
         </p>
         <div className="sideSocial">
-          <a href="https://github.com/amanthakur" target="_blank" rel="noreferrer" className="sideSocialLink" data-platform="github" aria-label="GitHub">
+          <a href={SOCIAL_LINKS.github} target="_blank" rel="noreferrer" className="sideSocialLink" data-platform="github" aria-label="GitHub">
             <i className="fab fa-github"></i>
           </a>
-          <a href="https://twitter.com/amanthakur" target="_blank" rel="noreferrer" className="sideSocialLink" data-platform="twitter" aria-label="Twitter">
+          <a href={SOCIAL_LINKS.twitter} target="_blank" rel="noreferrer" className="sideSocialLink" data-platform="twitter" aria-label="Twitter">
             <i className="fab fa-twitter"></i>
           </a>
-          <a href="https://linkedin.com/in/amanthakur" target="_blank" rel="noreferrer" className="sideSocialLink" data-platform="linkedin" aria-label="LinkedIn">
+          <a href={SOCIAL_LINKS.linkedin} target="_blank" rel="noreferrer" className="sideSocialLink" data-platform="linkedin" aria-label="LinkedIn">
             <i className="fab fa-linkedin-in"></i>
           </a>
-          <a href="https://instagram.com/amanthakur" target="_blank" rel="noreferrer" className="sideSocialLink" data-platform="instagram" aria-label="Instagram">
+          <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noreferrer" className="sideSocialLink" data-platform="instagram" aria-label="Instagram">
             <i className="fab fa-instagram"></i>
           </a>
         </div>

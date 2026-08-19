@@ -3,6 +3,7 @@ import { useContext, useState } from "react";
 import { Context } from "../../context/Context";
 import axios from "axios";
 import { API_URL, IMAGES_URL } from "../../config";
+import { DEFAULT_AVATAR, BIO_MAX_LENGTH, COLORS } from "../../constants";
 
 export default function Settings() {
   const [file, setFile] = useState(null);
@@ -75,7 +76,7 @@ export default function Settings() {
                   ? URL.createObjectURL(file)
                   : user.profilePic
                   ? `${IMAGES_URL}/${user.profilePic}`
-                  : `${IMAGES_URL}/default-avatar.png`
+                  : `${IMAGES_URL}/${DEFAULT_AVATAR}`
               }
               alt=""
             />
@@ -106,7 +107,7 @@ export default function Settings() {
           <input
             type="text"
             placeholder={user.bio || "Tell us about yourself..."}
-            maxLength={200}
+            maxLength={BIO_MAX_LENGTH}
             onChange={(e) => setBio(e.target.value)}
           />
           <label>Password</label>
@@ -132,7 +133,7 @@ export default function Settings() {
           {success && (
             <span
               style={{
-                color: "green",
+                color: COLORS.green,
                 textAlign: "center",
                 marginTop: "20px",
               }}
@@ -143,7 +144,7 @@ export default function Settings() {
           {error && (
             <span
               style={{
-                color: "red",
+                color: COLORS.error,
                 textAlign: "center",
                 marginTop: "20px",
               }}

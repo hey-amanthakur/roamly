@@ -1,27 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { CATEGORIES, HERO_IMAGE, HERO_STATS, HERO_TECH } from "../../constants";
 import "./header.css";
-
-const CATEGORIES = [
-  {
-    key: "travel",
-    label: "Travel",
-    icon: "🌍",
-    desc: "Discover hidden gems and breathtaking destinations",
-  },
-  {
-    key: "food",
-    label: "Food",
-    icon: "🍜",
-    desc: "Culinary adventures from street food to fine dining",
-  },
-  {
-    key: "code",
-    label: "Code",
-    icon: "💻",
-    desc: "Building the future, one commit at a time",
-  },
-];
 
 export default function Header() {
   const [active, setActive] = useState("travel");
@@ -104,31 +84,24 @@ export default function Header() {
 
           {/* Stats */}
           <div className="heroStats">
-            <div className="heroStat">
-              <span className="heroStatNum">50+</span>
-              <span className="heroStatLabel">Stories</span>
-            </div>
-            <div className="heroStatDivider"></div>
-            <div className="heroStat">
-              <span className="heroStatNum">12</span>
-              <span className="heroStatLabel">Countries</span>
-            </div>
-            <div className="heroStatDivider"></div>
-            <div className="heroStat">
-              <span className="heroStatNum">100+</span>
-              <span className="heroStatLabel">Dishes</span>
-            </div>
+            {HERO_STATS.map((stat, i) => (
+              <div key={stat.label} className="heroStat">
+                {i > 0 && <div className="heroStatDivider"></div>}
+                <span className="heroStatNum">{stat.value}</span>
+                <span className="heroStatLabel">{stat.label}</span>
+              </div>
+            ))}
           </div>
 
           {/* Tech ticker */}
           <div className="heroTicker">
             <span className="heroTickerLabel">Powered by</span>
             <div className="heroTickerList">
-              {["React", "Node.js", "MongoDB", "Express", "Docker"].map(
+              {HERO_TECH.map(
                 (tech, i) => (
                   <span key={tech} className="heroTickerItem">
                     {tech}
-                    {i < 4 && <span className="heroTickerDot">·</span>}
+                    {i < HERO_TECH.length - 1 && <span className="heroTickerDot">·</span>}
                   </span>
                 )
               )}
@@ -145,7 +118,7 @@ export default function Header() {
             {/* Card image */}
             <div className="heroShowcaseImg">
               <img
-                src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&auto=format&fit=crop&q=80"
+                src={HERO_IMAGE}
                 alt="Travel adventure"
                 loading="eager"
               />

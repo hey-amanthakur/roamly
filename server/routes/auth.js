@@ -3,10 +3,11 @@ const router = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { BCRYPT_SALT_ROUNDS, JWT_EXPIRY, PASSWORD_MIN_LENGTH } = require("../constants");
 
 const generateToken = (userId, username) => {
   return jwt.sign({ id: userId, username }, process.env.JWT_SECRET, {
-    expiresIn: "3d",
+    expiresIn: JWT_EXPIRY,
   });
 };
 
@@ -19,7 +20,7 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    if (password.length < 6) {
+    if (password.length < PASSWORD_MIN_LENGTH) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
@@ -31,7 +32,7 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: `${field} already exists` });
     }
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
     const hashedPass = await bcrypt.hash(password, salt);
 
     const newUser = new User({

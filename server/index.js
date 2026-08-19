@@ -14,6 +14,7 @@ const analyticsRoute = require("./routes/analytics");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
+const { FILE_UPLOAD } = require("./constants");
 
 dotenv.config();
 
@@ -49,9 +50,8 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowed = /jpeg|jpg|png|gif|webp/;
-  const extOk = allowed.test(path.extname(file.originalname).toLowerCase());
-  const mimeOk = allowed.test(file.mimetype);
+  const extOk = FILE_UPLOAD.ALLOWED_EXTENSIONS.test(path.extname(file.originalname).toLowerCase());
+  const mimeOk = FILE_UPLOAD.ALLOWED_EXTENSIONS.test(file.mimetype);
   if (extOk && mimeOk) {
     cb(null, true);
   } else {
@@ -62,7 +62,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: FILE_UPLOAD.MAX_SIZE },
 });
 
 app.post("/api/upload", upload.single("file"), (req, res) => {

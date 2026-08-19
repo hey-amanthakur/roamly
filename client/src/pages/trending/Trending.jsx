@@ -3,6 +3,7 @@ import axios from "axios";
 import { API_URL } from "../../config";
 import Posts from "../../components/posts/Posts";
 import SideBar from "../../components/sidebar/SideBar";
+import { PAGE_LIMITS, COLORS } from "../../constants";
 
 export default function Trending() {
   const [posts, setPosts] = useState([]);
@@ -16,7 +17,7 @@ export default function Trending() {
       setLoading(true);
       try {
         const res = await axios.get(
-          `${API_URL}/posts?sort=${sortBy}&page=${page}&limit=10`
+          `${API_URL}/posts?sort=${sortBy}&page=${page}&limit=${PAGE_LIMITS.DEFAULT}`
         );
         setPosts(res.data.posts);
         setPages(res.data.pages);
@@ -60,7 +61,7 @@ export default function Trending() {
         {loading ? (
           <p style={{ textAlign: "center" }}>Loading...</p>
         ) : posts.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#999" }}>No posts found</p>
+          <p style={{ textAlign: "center", color: COLORS.muted }}>No posts found</p>
         ) : (
           <>
             <Posts posts={posts} />

@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const Post = require("../models/Post");
 const { verifyToken } = require("../middleware/auth");
+const { PAGE_LIMITS } = require("../constants");
 
 // GET POST ANALITICS (author only)
 router.get("/posts/:id", verifyToken, async (req, res) => {
@@ -31,7 +32,7 @@ router.get("/posts/:id", verifyToken, async (req, res) => {
 // GET ALL POSTS ANALITICS (author dashboard)
 router.get("/dashboard", verifyToken, async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+  const limit = Math.min(PAGE_LIMITS.MAX, Math.max(1, parseInt(req.query.limit) || PAGE_LIMITS.DASHBOARD));
   const skip = (page - 1) * limit;
 
   try {

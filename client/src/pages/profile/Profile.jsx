@@ -5,6 +5,7 @@ import { Context } from "../../context/Context";
 import { API_URL, IMAGES_URL } from "../../config";
 import Posts from "../../components/posts/Posts";
 import SideBar from "../../components/sidebar/SideBar";
+import { PAGE_LIMITS, DEFAULT_AVATAR } from "../../constants";
 
 export default function Profile() {
   const { username } = useParams();
@@ -21,7 +22,7 @@ export default function Profile() {
       setLoading(true);
       try {
         const postsRes = await axios.get(
-          `${API_URL}/posts?user=${username}&page=${page}&limit=5`
+          `${API_URL}/posts?user=${username}&page=${page}&limit=${PAGE_LIMITS.PROFILE}`
         );
         setPosts(postsRes.data.posts);
         setPages(postsRes.data.pages);
@@ -94,7 +95,7 @@ export default function Profile() {
             src={
               profileUser.profilePic
                 ? `${IMAGES_URL}/${profileUser.profilePic}`
-                : `${IMAGES_URL}/default-avatar.png`
+                : `${IMAGES_URL}/${DEFAULT_AVATAR}`
             }
             alt={profileUser.username}
           />

@@ -2,6 +2,7 @@ const router = require("express").Router();
 const User = require("../models/User");
 const Post = require("../models/Post");
 const { verifyToken } = require("../middleware/auth");
+const { PAGE_LIMITS } = require("../constants");
 
 // TOGGLE BOOKMARK
 router.put("/posts/:id", verifyToken, async (req, res) => {
@@ -33,7 +34,7 @@ router.put("/posts/:id", verifyToken, async (req, res) => {
 // GET USER BOOKMARKS
 router.get("/", verifyToken, async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+  const limit = Math.min(PAGE_LIMITS.MAX, Math.max(1, parseInt(req.query.limit) || PAGE_LIMITS.BOOKMARKS));
   const skip = (page - 1) * limit;
 
   try {

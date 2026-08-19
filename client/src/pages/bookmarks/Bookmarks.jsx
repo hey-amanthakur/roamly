@@ -4,6 +4,7 @@ import { Context } from "../../context/Context";
 import { API_URL } from "../../config";
 import Posts from "../../components/posts/Posts";
 import SideBar from "../../components/sidebar/SideBar";
+import { PAGE_LIMITS, COLORS } from "../../constants";
 
 export default function Bookmarks() {
   const [posts, setPosts] = useState([]);
@@ -16,7 +17,7 @@ export default function Bookmarks() {
     const fetchBookmarks = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${API_URL}/bookmarks?page=${page}&limit=10`, {
+        const res = await axios.get(`${API_URL}/bookmarks?page=${page}&limit=${PAGE_LIMITS.DEFAULT}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPosts(res.data.posts);
@@ -37,7 +38,7 @@ export default function Bookmarks() {
         {loading ? (
           <p style={{ textAlign: "center" }}>Loading...</p>
         ) : posts.length === 0 ? (
-          <p style={{ textAlign: "center", color: "#999" }}>
+          <p style={{ textAlign: "center", color: COLORS.muted }}>
             No bookmarks yet. Start saving posts you love!
           </p>
         ) : (

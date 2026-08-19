@@ -1,15 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { API_URL } from "../../config";
-
-const REASONS = [
-  { value: "spam", label: "Spam" },
-  { value: "inappropriate", label: "Inappropriate Content" },
-  { value: "harassment", label: "Harassment" },
-  { value: "false-information", label: "False Information" },
-  { value: "copyright", label: "Copyright Violation" },
-  { value: "other", label: "Other" },
-];
+import { REPORT_REASONS } from "../../constants";
 
 export default function ReportModal({ targetType, targetId, token, onClose }) {
   const [reason, setReason] = useState("");
@@ -53,7 +45,7 @@ export default function ReportModal({ targetType, targetId, token, onClose }) {
               <label>Reason:</label>
               <select value={reason} onChange={(e) => setReason(e.target.value)}>
                 <option value="">Select a reason...</option>
-                {REASONS.map((r) => (
+                {REPORT_REASONS.map((r) => (
                   <option key={r.value} value={r.value}>
                     {r.label}
                   </option>

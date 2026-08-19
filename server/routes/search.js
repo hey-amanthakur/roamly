@@ -1,10 +1,11 @@
 const router = require("express").Router();
 const Post = require("../models/Post");
+const { PAGE_LIMITS } = require("../constants");
 
 router.get("/", async (req, res) => {
-  const { q, page = 1, limit = 10 } = req.query;
+  const { q, page = 1, limit = PAGE_LIMITS.SEARCH } = req.query;
   const pageNum = Math.max(1, parseInt(page));
-  const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
+  const limitNum = Math.min(PAGE_LIMITS.MAX, Math.max(1, parseInt(limit)));
   const skip = (pageNum - 1) * limitNum;
 
   if (!q || !q.trim()) {

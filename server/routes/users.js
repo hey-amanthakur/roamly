@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Post = require("../models/Post");
 const bcrypt = require("bcrypt");
 const { verifyToken } = require("../middleware/auth");
+const { BCRYPT_SALT_ROUNDS, PASSWORD_MIN_LENGTH, ALLOWED_USER_FIELDS } = require("../constants");
 
 // UPDATE
 router.put("/:id", verifyToken, async (req, res) => {
@@ -12,16 +13,17 @@ router.put("/:id", verifyToken, async (req, res) => {
 
   try {
     const updates = {};
-    if (req.body.username) updates.username = req.body.username;
-    if (req.body.email) updates.email = req.body.email;
-    if (req.body.bio !== undefined) updates.bio = req.body.bio;
-    if (req.body.profilePic) updates.profilePic = req.body.profilePic;
+    for (const field of ALLOWED_USER_FIELDS) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
 
     if (req.body.password) {
-      if (req.body.password.length < 6) {
+      if (req.body.password.length < PASSWORD_MIN_LENGTH) {
         return res.status(400).json({ message: "Password must be at least 6 characters" });
       }
-      const salt = await bcrypt.genSalt(10);
+      const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
       updates.password = await bcrypt.hash(req.body.password, salt);
     }
 

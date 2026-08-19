@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { Context } from "../../context/Context";
 import { API_URL } from "../../config";
+import { PAGE_LIMITS, COLORS } from "../../constants";
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
@@ -16,7 +17,7 @@ export default function Dashboard() {
     const fetchDashboard = async () => {
       setLoading(true);
       try {
-        const res = await axios.get(`${API_URL}/analytics/dashboard?page=${page}&limit=10`, {
+        const res = await axios.get(`${API_URL}/analytics/dashboard?page=${page}&limit=${PAGE_LIMITS.DASHBOARD}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setStats(res.data.stats);
@@ -61,7 +62,7 @@ export default function Dashboard() {
       <div className="dashboardPosts">
         <h3>Your Posts</h3>
         {posts.length === 0 ? (
-          <p style={{ color: "#999" }}>
+          <p style={{ color: COLORS.muted }}>
             No posts yet. <Link to="/write">Write your first post!</Link>
           </p>
         ) : (

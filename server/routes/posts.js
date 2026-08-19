@@ -2,6 +2,7 @@ const router = require("express").Router();
 const Post = require("../models/Post");
 const User = require("../models/User");
 const { verifyToken, optionalToken } = require("../middleware/auth");
+const { PAGE_LIMITS, RELATED_POSTS_LIMIT, TRENDING_WINDOW_MS, ALLOWED_POST_FIELDS } = require("../constants");
 
 // CREATE POST
 router.post("/", verifyToken, async (req, res) => {
@@ -47,7 +48,7 @@ router.put("/:id", verifyToken, async (req, res) => {
       return res.status(401).json({ message: "You can update only your post!" });
     }
 
-    const allowedFields = ["title", "desc", "photos", "photo", "categories", "tags", "location", "status"];
+    const allowedFields = ALLOWED_POST_FIELDS;
     const updates = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
@@ -118,7 +119,7 @@ router.get("/:id", optionalToken, async (req, res) => {
 router.get("/", async (req, res) => {
   const { user, cat, tag, sort, status: queryStatus } = req.query;
   const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 5));
+  const limit = Math.min(PAGE_LIMITS.MAX, Math.max(1, parseInt(req.query.limit) || PAGE_LIMITS.DEFAULT));
   const skip = (page - 1) * limit;
 
   try {
@@ -136,7 +137,7 @@ router.get("/", async (req, res) => {
     if (sort === "popular") {
       sortOption = { likes: -1, views: -1 };
     } else if (sort === "trending") {
-      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      const threeDaysAgo = new Date(Date.now() - TRENDING_WINDOW_MS);
       filter.createdAt = { $gte: threeDaysAgo };
       sortOption = { views: -1, likes: -1 };
     } else if (sort === "most_discussed") {
@@ -162,7 +163,7 @@ router.get("/", async (req, res) => {
 // PERSONALIZED FEED (for logged-in users)
 router.get("/feed/for-you", verifyToken, async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 5));
+  const limit = Math.min(PAGE_LIMITS.MAX, Math.max(1, parseInt(req.query.limit) || PAGE_LIMITS.DEFAULT));
   const skip = (page - 1) * limit;
 
   try {
@@ -217,7 +218,7 @@ router.get("/:id/related", async (req, res) => {
 
     const related = await Post.find(relatedFilter)
       .sort({ likes: -1, views: -1 })
-      .limit(5);
+      .limit(RELATED_POSTS_LIMIT);
 
     res.status(200).json(related);
   } catch (err) {
@@ -306,7 +307,7 @@ router.delete("/:postId/comments/:commentId", verifyToken, async (req, res) => {
 // GET DRAFTS (author's own drafts)
 router.get("/user/drafts", verifyToken, async (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
-  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+  const limit = Math.min(PAGE_LIMITS.MAX, Math.max(1, parseInt(req.query.limit) || PAGE_LIMITS.DRAFTS));
   const skip = (page - 1) * limit;
 
   try {

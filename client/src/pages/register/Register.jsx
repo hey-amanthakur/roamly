@@ -2,6 +2,7 @@ import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { API_URL } from "../../config";
+import { PASSWORD_MIN_LENGTH } from "../../constants";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -83,7 +84,7 @@ export default function Register() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={PASSWORD_MIN_LENGTH}
               />
             </div>
           </div>
