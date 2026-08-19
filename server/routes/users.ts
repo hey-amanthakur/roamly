@@ -9,6 +9,7 @@ import {
   ALLOWED_USER_FIELDS,
 } from "../constants";
 import { AuthRequest } from "../types";
+import { sanitizeText } from "../utils/sanitize";
 
 const router = Router();
 
@@ -60,17 +61,27 @@ router.put("/:id", verifyToken, async (req: AuthRequest, res: Response): Promise
     const updates: Record<string, any> = {};
     for (const field of ALLOWED_USER_FIELDS) {
       if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
+        updates[field] = typeof req.body[field] === "string"
+          ? sanitizeText(req.body[field])
+          : req.body[field];
       }
     }
 
     if (req.body.password) {
       if (req.body.password.length < PASSWORD_MIN_LENGTH) {
-        res.status(400).json({ message: "Password must be at least 6 characters" });
+        res.status(400).json({ message: `Password must be at least ${PASSWORD_MIN_LENGTH} characters` });
         return;
       }
-      const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
-      updates.password = await bcrypt.hash(req.body.password, salt);
+      updates.password = await bcrypt.hash(req.body.password, BCRYPT_SALT_ROUNDS);
+    }
+
+    if (updates.username) {
+      await Post.updateMany({ userId: req.params.id }, { $set: { username: updates.username } });
+      await Post.updateMany(
+        { "comments.userId": req.params.id },
+        { $set: { "comments.$[elem].username": updates.username } },
+        { arrayFilters: [{ "elem.userId": req.params.id }] }
+      );
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -130,6 +141,11 @@ router.delete("/:id", verifyToken, async (req: AuthRequest, res: Response): Prom
     }
 
     await Post.deleteMany({ userId: user._id });
+    await User.updateMany({ followers: user._id }, { $pull: { followers: user._id } });
+    await User.updateMany({ followings: user._id }, { $pull: { followings: user._id } });
+    await User.updateMany({ bookmarks: { $in: user._id } }, { $pull: { bookmarks: user._id } });
+    await Post.updateMany({ likes: user._id }, { $pull: { likes: user._id } });
+    await Post.updateMany({ bookmarks: user._id }, { $pull: { bookmarks: user._id } });
     await User.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: "User has been deleted..." });
@@ -266,6 +282,37 @@ router.put("/:id/unfollow", verifyToken, async (req: AuthRequest, res: Response)
     await currentUser.updateOne({ $pull: { followings: req.params.id } });
 
     res.status(200).json({ message: "User has been unfollowed" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/**
+ * @swagger
+ * /api/users/username/{username}:
+ *   get:
+ *     summary: Get user by username
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User found
+ *       404:
+ *         description: User not found
+ */
+router.get("/username/:username", async (req, res: Response): Promise<void> => {
+  try {
+    const user = await User.findOne({ username: req.params.username }).select("-password");
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    res.status(200).json(user);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }

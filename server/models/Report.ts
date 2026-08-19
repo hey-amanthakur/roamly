@@ -18,7 +18,7 @@ const ReportSchema = new Schema<IReportDocument>(
       required: true,
     },
     targetId: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
     },
     reason: {

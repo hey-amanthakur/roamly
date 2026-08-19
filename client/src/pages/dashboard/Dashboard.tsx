@@ -21,22 +21,27 @@ export default function Dashboard() {
   const { token } = useContext(Context);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchDashboard = async () => {
       setLoading(true);
       try {
         const res = await axios.get<DashboardResponse>(`${API_URL}/analytics/dashboard?page=${page}&limit=${PAGE_LIMITS.DASHBOARD}`, {
           headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
         });
         setStats(res.data.stats);
         setPosts(res.data.posts);
         setPages(res.data.pages);
-      } catch (err) {
-        console.error("Failed to load dashboard");
+      } catch (err: any) {
+        if (err.name !== "CanceledError") {
+          console.error("Failed to load dashboard");
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchDashboard();
+    return () => controller.abort();
   }, [token, page]);
 
   if (loading) return <p style={{ textAlign: "center", marginTop: "20px" }}>Loading...</p>;

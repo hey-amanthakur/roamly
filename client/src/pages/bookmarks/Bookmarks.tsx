@@ -15,21 +15,26 @@ export default function Bookmarks() {
   const { token } = useContext(Context);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchBookmarks = async () => {
       setLoading(true);
       try {
         const res = await axios.get<PaginatedPosts>(`${API_URL}/bookmarks?page=${page}&limit=${PAGE_LIMITS.DEFAULT}`, {
           headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
         });
         setPosts(res.data.posts);
         setPages(res.data.pages);
-      } catch (err) {
-        console.error("Failed to load bookmarks");
+      } catch (err: any) {
+        if (err.name !== "CanceledError") {
+          console.error("Failed to load bookmarks");
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchBookmarks();
+    return () => controller.abort();
   }, [token, page]);
 
   return (

@@ -3,7 +3,7 @@ import Header from "../../components/header/Header";
 import Posts from "../../components/posts/Posts";
 import Sidebar from "../../components/sidebar/SideBar";
 import axios from "axios";
-import { useLocation, useHistory } from "react-router";
+import { useLocation, useHistory } from "react-router-dom";
 import { API_URL } from "../../config";
 import { Context } from "../../context/Context";
 import { CATEGORIES, PAGE_LIMITS, COLORS } from "../../constants";
@@ -34,6 +34,11 @@ export default function Homepage() {
   }, [catQuery]);
 
   useEffect(() => {
+    setPage(1);
+  }, [search, sortBy, activeCategory]);
+
+  useEffect(() => {
+    const controller = new AbortController();
     const fetchPosts = async () => {
       setLoading(true);
       setError("");
@@ -48,22 +53,21 @@ export default function Homepage() {
           if (sortBy) params += `&sort=${sortBy}`;
           url = `${API_URL}/posts?${params}`;
         }
-        const res = await axios.get<PaginatedPosts>(url);
+        const res = await axios.get<PaginatedPosts>(url, { signal: controller.signal });
         setPosts(res.data.posts);
         setPages(res.data.pages);
         setTotal(res.data.total);
-      } catch (err) {
-        setError("Failed to load posts");
+      } catch (err: any) {
+        if (err.name !== "CanceledError") {
+          setError("Failed to load posts");
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchPosts();
+    return () => controller.abort();
   }, [search, page, sortBy, searchQuery, tagQuery, activeCategory]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, sortBy, activeCategory]);
 
   const handleCategoryClick = (catKey: string) => {
     if (activeCategory === catKey) {

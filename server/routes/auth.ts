@@ -8,11 +8,23 @@ import {
   PASSWORD_MIN_LENGTH,
 } from "../constants";
 import { IUserDocument } from "../types";
+import { rateLimit } from "../middleware/rateLimit";
+import { sanitizeText } from "../utils/sanitize";
 
 const router = Router();
 
+const authRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: "Too many authentication attempts, please try again later",
+});
+
 const generateToken = (userId: string, username: string): string => {
-  return jwt.sign({ id: userId, username }, process.env.JWT_SECRET || "", {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET environment variable is not set");
+  }
+  return jwt.sign({ id: userId, username }, secret, {
     expiresIn: JWT_EXPIRY,
   });
 };
@@ -49,7 +61,7 @@ const generateToken = (userId: string, username: string): string => {
  *       500:
  *         description: Server error
  */
-router.post("/register", async (req: Request, res: Response): Promise<void> => {
+router.post("/register", authRateLimit, async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, email, password } = req.body;
 
@@ -59,7 +71,7 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
     }
 
     if (password.length < PASSWORD_MIN_LENGTH) {
-      res.status(400).json({ message: "Password must be at least 6 characters" });
+      res.status(400).json({ message: `Password must be at least ${PASSWORD_MIN_LENGTH} characters` });
       return;
     }
 
@@ -72,11 +84,10 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
-    const hashedPass = await bcrypt.hash(password, salt);
+    const hashedPass = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 
     const newUser = new User({
-      username,
+      username: sanitizeText(username),
       email,
       password: hashedPass,
     });
@@ -116,7 +127,7 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
  *       500:
  *         description: Server error
  */
-router.post("/login", async (req: Request, res: Response): Promise<void> => {
+router.post("/login", authRateLimit, async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 

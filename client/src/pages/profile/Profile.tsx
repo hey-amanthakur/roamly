@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { useParams } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 import { Context } from "../../context/Context";
 import { API_URL, IMAGES_URL } from "../../config";
 import Posts from "../../components/posts/Posts";
@@ -12,45 +12,52 @@ export default function Profile() {
   const { username } = useParams<{ username: string }>();
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [totalPosts, setTotalPosts] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const { user, token } = useContext(Context);
   const [page, setPage] = useState<number>(1);
   const [pages, setPages] = useState<number>(1);
+  const history = useHistory();
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchProfile = async () => {
       setLoading(true);
       try {
+        const userRes = await axios.get<User>(
+          `${API_URL}/users/username/${username}`,
+          { signal: controller.signal }
+        );
+        setProfileUser(userRes.data);
+        if (user) {
+          setIsFollowing(
+            userRes.data.followers?.includes(user._id) || false
+          );
+        }
+
         const postsRes = await axios.get<PaginatedPosts>(
-          `${API_URL}/posts?user=${username}&page=${page}&limit=${PAGE_LIMITS.PROFILE}`
+          `${API_URL}/posts?user=${username}&page=${page}&limit=${PAGE_LIMITS.PROFILE}`,
+          { signal: controller.signal }
         );
         setPosts(postsRes.data.posts);
         setPages(postsRes.data.pages);
-
-        if (postsRes.data.posts.length > 0) {
-          const userRes = await axios.get<User>(
-            `${API_URL}/users/${postsRes.data.posts[0].userId}`
-          );
-          setProfileUser(userRes.data);
-          if (user) {
-            setIsFollowing(
-              userRes.data.followers?.includes(user._id) || false
-            );
-          }
+        setTotalPosts(postsRes.data.total);
+      } catch (err: any) {
+        if (err.name !== "CanceledError") {
+          console.error("Failed to load profile");
         }
-      } catch (err) {
-        console.error("Failed to load profile");
       } finally {
         setLoading(false);
       }
     };
     fetchProfile();
+    return () => controller.abort();
   }, [username, page, user]);
 
   const handleFollow = async () => {
     if (!token) {
-      window.location.replace("/login");
+      history.push("/login");
       return;
     }
     try {
@@ -106,7 +113,7 @@ export default function Profile() {
               <p className="profileBio">{profileUser.bio}</p>
             )}
             <div className="profileStats">
-              <span>{posts.length} posts</span>
+              <span>{totalPosts} posts</span>
               <span>{profileUser.followers?.length || 0} followers</span>
               <span>{profileUser.followings?.length || 0} following</span>
             </div>

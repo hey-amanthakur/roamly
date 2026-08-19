@@ -2,7 +2,10 @@ import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AuthRequest, JwtPayload } from "../types";
 
-const JWT_SECRET = process.env.JWT_SECRET || "";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error("FATAL: JWT_SECRET environment variable is not set. Authentication will be insecure.");
+}
 
 export const verifyToken = (
   req: AuthRequest,

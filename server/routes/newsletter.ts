@@ -94,6 +94,12 @@ router.post("/unsubscribe", async (req: Request, res: Response): Promise<void> =
     return;
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    res.status(400).json({ message: "Invalid email format" });
+    return;
+  }
+
   try {
     const subscription = await Newsletter.findOne({ email: email.toLowerCase() });
     if (!subscription) {

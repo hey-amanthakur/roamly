@@ -48,7 +48,8 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const searchRegex = new RegExp((q as string).trim(), "i");
+  const escaped = (q as string).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const searchRegex = new RegExp(escaped, "i");
 
   try {
     const filter: Record<string, any> = {

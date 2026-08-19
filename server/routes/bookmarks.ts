@@ -36,18 +36,24 @@ router.put("/posts/:id", verifyToken, async (req: AuthRequest, res: Response): P
     }
 
     const user = await User.findById(req.user!.id);
-    const alreadyBookmarked = user!.bookmarks.some(
-      (id) => id.toString() === req.params.id
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    const addResult = await User.findOneAndUpdate(
+      { _id: req.user!.id, bookmarks: { $ne: req.params.id } },
+      { $push: { bookmarks: req.params.id } },
+      { new: true }
     );
 
-    if (alreadyBookmarked) {
-      await user!.updateOne({ $pull: { bookmarks: req.params.id } });
-      await post.updateOne({ $pull: { bookmarks: req.user!.id } });
-      res.status(200).json({ message: "Bookmark removed", bookmarked: false });
-    } else {
-      await user!.updateOne({ $push: { bookmarks: req.params.id } });
+    if (addResult) {
       await post.updateOne({ $push: { bookmarks: req.user!.id } });
       res.status(200).json({ message: "Post bookmarked", bookmarked: true });
+    } else {
+      await User.findByIdAndUpdate(req.user!.id, { $pull: { bookmarks: req.params.id } });
+      await post.updateOne({ $pull: { bookmarks: req.user!.id } });
+      res.status(200).json({ message: "Bookmark removed", bookmarked: false });
     }
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -85,7 +91,11 @@ router.get("/", verifyToken, async (req: AuthRequest, res: Response): Promise<vo
 
   try {
     const user = await User.findById(req.user!.id);
-    const bookmarkIds = user!.bookmarks || [];
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    const bookmarkIds = user.bookmarks || [];
 
     const [posts, total] = await Promise.all([
       Post.find({ _id: { $in: bookmarkIds } })

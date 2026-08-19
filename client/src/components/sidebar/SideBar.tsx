@@ -1,17 +1,24 @@
-import { useState, FormEvent } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
 import { SOCIAL_LINKS, AUTHOR } from "../../constants";
 import "./sidebar.css";
 
 export default function SideBar() {
   const [email, setEmail] = useState<string>("");
   const [subscribed, setSubscribed] = useState<boolean>(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const handleSubscribe = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (email) {
       setSubscribed(true);
       setEmail("");
-      setTimeout(() => setSubscribed(false), 3000);
+      timerRef.current = setTimeout(() => setSubscribed(false), 3000);
     }
   };
   return (

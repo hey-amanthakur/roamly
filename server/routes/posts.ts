@@ -9,6 +9,7 @@ import {
   ALLOWED_POST_FIELDS,
 } from "../constants";
 import { AuthRequest, PaginatedResponse, IPostDocument } from "../types";
+import { sanitizeText } from "../utils/sanitize";
 
 const router = Router();
 
@@ -77,8 +78,8 @@ router.post("/", verifyToken, async (req: AuthRequest, res: Response): Promise<v
   }
 
   const newPost = new Post({
-    title,
-    desc,
+    title: sanitizeText(title),
+    desc: sanitizeText(desc),
     photos: photos || [],
     photo: photo || "",
     username: req.user!.username,
@@ -239,15 +240,18 @@ router.get("/:id", optionalToken, async (req: AuthRequest, res: Response): Promi
       return;
     }
 
-    await Post.findByIdAndUpdate(req.params.id, { $inc: { views: 1 } });
+    const updatedPost = await Post.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
 
-    const postObj = post.toObject();
-    postObj.views = (postObj.views || 0) + 1;
+    const postObj = updatedPost!.toObject();
     (postObj as any).isLiked = req.user
-      ? post.likes.some((id) => id.toString() === req.user!.id)
+      ? postObj.likes.some((id: any) => id.toString() === req.user!.id)
       : false;
     (postObj as any).isBookmarked = req.user
-      ? post.bookmarks.some((id) => id.toString() === req.user!.id)
+      ? postObj.bookmarks.some((id: any) => id.toString() === req.user!.id)
       : false;
 
     res.status(200).json(postObj);
@@ -302,7 +306,7 @@ router.get("/:id", optionalToken, async (req: AuthRequest, res: Response): Promi
  *       200:
  *         description: List of posts with pagination
  */
-router.get("/", async (req, res: Response): Promise<void> => {
+router.get("/", optionalToken, async (req: AuthRequest, res: Response): Promise<void> => {
   const { user, cat, tag, sort, status: queryStatus } = req.query;
   const page = Math.max(1, parseInt(req.query.page as string) || 1);
   const limit = Math.min(
@@ -312,7 +316,16 @@ router.get("/", async (req, res: Response): Promise<void> => {
   const skip = (page - 1) * limit;
 
   try {
-    let filter: Record<string, any> = { status: (queryStatus as string) || "published" };
+    const isDraftRequest = (queryStatus as string) === "draft";
+    const status = isDraftRequest && req.user ? "draft" : "published";
+
+    let filter: Record<string, any> = { status };
+    if (isDraftRequest && req.user) {
+      filter.userId = req.user.id;
+    } else if (isDraftRequest && !req.user) {
+      res.status(401).json({ message: "Authentication required to view drafts" });
+      return;
+    }
 
     if (user) {
       filter.username = user;
@@ -329,14 +342,28 @@ router.get("/", async (req, res: Response): Promise<void> => {
       const threeDaysAgo = new Date(Date.now() - TRENDING_WINDOW_MS);
       filter.createdAt = { $gte: threeDaysAgo };
       sortOption = { views: -1, likes: -1 };
-    } else if (sort === "most_discussed") {
-      sortOption = { comments: -1 };
     }
 
-    const [posts, total] = await Promise.all([
-      Post.find(filter).sort(sortOption).skip(skip).limit(limit),
-      Post.countDocuments(filter),
+    const isMostDiscussed = sort === "most_discussed";
+
+    const pipeline: any[] = [
+      { $match: filter },
+      ...(isMostDiscussed
+        ? [{ $addFields: { commentCount: { $size: "$comments" } } }]
+        : []),
+      { $sort: isMostDiscussed ? { commentCount: -1, createdAt: -1 } : sortOption },
+      { $skip: skip },
+      { $limit: limit },
+    ];
+
+    const countPipeline: any[] = [{ $match: filter }, { $count: "total" }];
+
+    const [posts, countResult] = await Promise.all([
+      Post.aggregate(pipeline),
+      Post.aggregate(countPipeline),
     ]);
+
+    const total = countResult[0]?.total || 0;
 
     const response: PaginatedResponse<IPostDocument> = {
       posts,
@@ -483,23 +510,28 @@ router.put("/:id/like", verifyToken, async (req: AuthRequest, res: Response): Pr
       return;
     }
 
-    const alreadyLiked = post.likes.some(
-      (id) => id.toString() === req.user!.id
+    const result = await Post.findOneAndUpdate(
+      { _id: req.params.id, likes: { $ne: req.user!.id } },
+      { $push: { likes: req.user!.id } },
+      { new: true }
     );
 
-    if (alreadyLiked) {
-      await post.updateOne({ $pull: { likes: req.user!.id } });
-      res.status(200).json({
-        message: "Post unliked",
-        liked: false,
-        likesCount: post.likes.length - 1,
-      });
-    } else {
-      await post.updateOne({ $push: { likes: req.user!.id } });
+    if (result) {
       res.status(200).json({
         message: "Post liked",
         liked: true,
-        likesCount: post.likes.length + 1,
+        likesCount: result.likes.length,
+      });
+    } else {
+      const pullResult = await Post.findByIdAndUpdate(
+        req.params.id,
+        { $pull: { likes: req.user!.id } },
+        { new: true }
+      );
+      res.status(200).json({
+        message: "Post unliked",
+        liked: false,
+        likesCount: pullResult!.likes.length,
       });
     }
   } catch (err) {
@@ -556,7 +588,7 @@ router.post("/:id/comments", verifyToken, async (req: AuthRequest, res: Response
     const comment = {
       username: req.user!.username,
       userId: req.user!.id as any,
-      text: text.trim(),
+      text: sanitizeText(text.trim()),
     };
 
     post.comments.push(comment as any);
@@ -612,10 +644,7 @@ router.delete(
         return;
       }
 
-      if (
-        comment.userId.toString() !== req.user!.id &&
-        comment.username !== req.user!.username
-      ) {
+      if (comment.userId.toString() !== req.user!.id) {
         res.status(401).json({ message: "You can delete only your comments" });
         return;
       }

@@ -10,6 +10,7 @@ const Reducer = (state: AppState, action: Action): AppState => {
       };
     case "LOGIN_SUCCESS":
       return {
+        ...state,
         user: action.payload.user,
         token: action.payload.token,
         isFetching: false,
@@ -43,6 +44,7 @@ const Reducer = (state: AppState, action: Action): AppState => {
       };
     case "LOGOUT":
       return {
+        ...state,
         user: null,
         token: null,
         isFetching: false,

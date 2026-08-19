@@ -14,6 +14,7 @@ export default function TopBar() {
   const handleLogout = (): void => {
     dispatch({ type: "LOGOUT" });
     setMobileMenuOpen(false);
+    history.push("/");
   };
 
   const handleSearch = (e: FormEvent<HTMLFormElement>): void => {
@@ -69,9 +70,11 @@ export default function TopBar() {
               </li>
             </>
           )}
-          <li className="topListItem" onClick={handleLogout}>
-            {user && "Logout"}
-          </li>
+          {user && (
+            <li className="topListItem" onClick={handleLogout}>
+              Logout
+            </li>
+          )}
         </ul>
       </div>
 

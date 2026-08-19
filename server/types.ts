@@ -15,6 +15,8 @@ export interface IUser {
   };
   followers: Types.ObjectId[];
   followings: Types.ObjectId[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface IUserDocument extends IUser, Document {}
@@ -78,7 +80,7 @@ export interface IReport {
   reporterId: Types.ObjectId;
   reporterUsername: string;
   targetType: "post" | "comment" | "user";
-  targetId: string;
+  targetId: Types.ObjectId;
   reason:
     | "spam"
     | "inappropriate"

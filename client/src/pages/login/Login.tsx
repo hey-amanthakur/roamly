@@ -16,9 +16,15 @@ export default function Login() {
     setError("");
     dispatch({ type: "LOGIN_START" });
     try {
-      const res = await axios.post<{ token: string; user: User }>(`${API_URL}/auth/login`, {
-        username: userRef.current!.value,
-        password: passwordRef.current!.value,
+      const username = userRef.current?.value || "";
+      const password = passwordRef.current?.value || "";
+      if (!username || !password) {
+        setError("Username and password are required");
+        return;
+      }
+      const res = await axios.post<{ token: string } & User>(`${API_URL}/auth/login`, {
+        username,
+        password,
       });
       const { token, ...userData } = res.data;
       dispatch({

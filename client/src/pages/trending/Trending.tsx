@@ -14,21 +14,26 @@ export default function Trending() {
   const [sortBy, setSortBy] = useState<string>("trending");
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetchPosts = async () => {
       setLoading(true);
       try {
         const res = await axios.get<PaginatedPosts>(
-          `${API_URL}/posts?sort=${sortBy}&page=${page}&limit=${PAGE_LIMITS.DEFAULT}`
+          `${API_URL}/posts?sort=${sortBy}&page=${page}&limit=${PAGE_LIMITS.DEFAULT}`,
+          { signal: controller.signal }
         );
         setPosts(res.data.posts);
         setPages(res.data.pages);
-      } catch (err) {
-        console.error("Failed to load trending posts");
+      } catch (err: any) {
+        if (err.name !== "CanceledError") {
+          console.error("Failed to load trending posts");
+        }
       } finally {
         setLoading(false);
       }
     };
     fetchPosts();
+    return () => controller.abort();
   }, [sortBy, page]);
 
   useEffect(() => {

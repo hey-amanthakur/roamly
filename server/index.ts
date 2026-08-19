@@ -17,6 +17,7 @@ import reportRoute from "./routes/reports";
 import newsletterRoute from "./routes/newsletter";
 import analyticsRoute from "./routes/analytics";
 import { FILE_UPLOAD } from "./constants";
+import { verifyToken } from "./middleware/auth";
 
 dotenv.config();
 
@@ -72,12 +73,7 @@ app.get("/api-docs.json", (req: Request, res: Response) => {
 
 // MongoDB connection
 (mongoose as any)
-  .connect(process.env.MONGO_URL || "mongodb://localhost:27017/travel-blog", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-  })
+  .connect(process.env.MONGO_URL || "mongodb://localhost:27017/travel-blog")
   .then(() => console.log("Connected to MongoDB"))
   .catch((err: any) => console.log(err));
 
@@ -109,7 +105,7 @@ const fileFilter = (
   const extOk = FILE_UPLOAD.ALLOWED_EXTENSIONS.test(
     path.extname(file.originalname).toLowerCase()
   );
-  const mimeOk = FILE_UPLOAD.ALLOWED_EXTENSIONS.test(file.mimetype);
+  const mimeOk = (FILE_UPLOAD.ALLOWED_MIMES as readonly string[]).includes(file.mimetype);
   if (extOk && mimeOk) {
     cb(null, true);
   } else {
@@ -148,6 +144,7 @@ const upload = multer({
  */
 app.post(
   "/api/upload",
+  verifyToken,
   upload.single("file"),
   (req: Request, res: Response) => {
     if (!req.file) {

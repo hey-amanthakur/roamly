@@ -1,5 +1,8 @@
 import { Router, Response } from "express";
+import mongoose from "mongoose";
 import Report from "../models/Report";
+import Post from "../models/Post";
+import User from "../models/User";
 import { verifyToken } from "../middleware/auth";
 import { AuthRequest } from "../types";
 
@@ -63,10 +66,26 @@ router.post("/", verifyToken, async (req: AuthRequest, res: Response): Promise<v
   }
 
   try {
+    const targetObjectId = new mongoose.Types.ObjectId(targetId);
+
+    if (targetType === "post") {
+      const exists = await Post.findById(targetObjectId);
+      if (!exists) {
+        res.status(404).json({ message: "Target not found" });
+        return;
+      }
+    } else if (targetType === "user") {
+      const exists = await User.findById(targetObjectId);
+      if (!exists) {
+        res.status(404).json({ message: "Target not found" });
+        return;
+      }
+    }
+
     const existingReport = await Report.findOne({
       reporterId: req.user!.id,
       targetType,
-      targetId,
+      targetId: targetObjectId,
     });
 
     if (existingReport) {
@@ -78,7 +97,7 @@ router.post("/", verifyToken, async (req: AuthRequest, res: Response): Promise<v
       reporterId: req.user!.id,
       reporterUsername: req.user!.username,
       targetType,
-      targetId,
+      targetId: targetObjectId,
       reason,
       description: description || "",
     });

@@ -1,5 +1,5 @@
-import { useContext } from "react";
-import { Link } from "react-router-dom";
+import { useContext, useState } from "react";
+import { Link, useHistory } from "react-router-dom";
 import { Context } from "../../context/Context";
 import { API_URL, IMAGES_URL } from "../../config";
 import axios from "axios";
@@ -17,22 +17,27 @@ const CAT_COLORS: Record<string, string> = {
 
 export default function Post({ post }: PostProps) {
   const { token } = useContext(Context) as ContextValue;
+  const [bookmarked, setBookmarked] = useState<boolean>(false);
+  const [bookmarkError, setBookmarkError] = useState<boolean>(false);
+  const history = useHistory();
 
   const handleBookmark = async (e: React.MouseEvent<HTMLElement>): Promise<void> => {
     e.preventDefault();
     e.stopPropagation();
     if (!token) {
-      window.location.replace("/login");
+      history.push("/login");
       return;
     }
     try {
-      await axios.put(
+      const res = await axios.put<{ bookmarked: boolean }>(
         `${API_URL}/bookmarks/posts/${post._id}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      setBookmarked(res.data.bookmarked);
     } catch (err) {
-      console.error("Failed to toggle bookmark");
+      setBookmarkError(true);
+      setTimeout(() => setBookmarkError(false), 2000);
     }
   };
 
@@ -44,7 +49,7 @@ export default function Post({ post }: PostProps) {
       <div className="postInfo">
         <div className="postCats">
           {post.categories?.map((c: string, i: number) => {
-            const catName = typeof c === "string" ? c : (c as unknown as { name: string }).name;
+            const catName = typeof c === "string" ? c : typeof c === "object" && c !== null && "name" in c ? (c as { name: string }).name : String(c);
             const catKey = catName.toLowerCase().replace(/\s+/g, "_");
             return (
               <Link key={i} to={`/?cat=${catName}`} className="link">
@@ -81,8 +86,9 @@ export default function Post({ post }: PostProps) {
         </div>
         {token && (
           <i
-            className={`fas fa-bookmark postBookmark`}
+            className={`fas fa-bookmark postBookmark ${bookmarked ? "active" : ""} ${bookmarkError ? "error" : ""}`}
             onClick={handleBookmark}
+            title={bookmarkError ? "Failed to update bookmark" : ""}
           ></i>
         )}
       </div>

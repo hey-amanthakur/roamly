@@ -1,4 +1,5 @@
 import { Router, Response } from "express";
+import mongoose from "mongoose";
 import Post from "../models/Post";
 import { verifyToken } from "../middleware/auth";
 import { PAGE_LIMITS } from "../constants";
@@ -110,7 +111,7 @@ router.get("/dashboard", verifyToken, async (req: AuthRequest, res: Response): P
     }));
 
     const totalStats = await Post.aggregate([
-      { $match: { userId: req.user!.id } },
+      { $match: { userId: new mongoose.Types.ObjectId(req.user!.id) } },
       {
         $group: {
           _id: null,

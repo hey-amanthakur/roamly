@@ -16,8 +16,8 @@ jest.mock("../../models/Report", () => {
   return MockReport;
 });
 
-jest.mock("../../models/User", () => ({}));
-jest.mock("../../models/Post", () => ({}));
+jest.mock("../../models/User", () => ({ findById: jest.fn().mockResolvedValue({ _id: "507f1f77bcf86cd799439011" }) }));
+jest.mock("../../models/Post", () => ({ findById: jest.fn().mockResolvedValue({ _id: "507f1f77bcf86cd799439011" }) }));
 
 import Report from "../../models/Report";
 import reportsRouter from "../../routes/reports";
@@ -78,7 +78,7 @@ describe("Reports Routes", () => {
       const res = await request(app)
         .post("/api/reports")
         .set("Authorization", `Bearer ${token}`)
-        .send({ targetType: "post", targetId: "p1", reason: "spam" });
+        .send({ targetType: "post", targetId: "507f1f77bcf86cd799439011", reason: "spam" });
       expect(res.status).toBe(400);
       expect(res.body.message).toBe("You have already reported this");
     });
@@ -93,7 +93,7 @@ describe("Reports Routes", () => {
         .set("Authorization", `Bearer ${token}`)
         .send({
           targetType: "post",
-          targetId: "p1",
+          targetId: "507f1f77bcf86cd799439011",
           reason: "spam",
           description: "Test description",
         });

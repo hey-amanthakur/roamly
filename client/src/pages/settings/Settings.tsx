@@ -1,5 +1,5 @@
 import SideBar from "../../components/sidebar/SideBar";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { Context } from "../../context/Context";
 import axios from "axios";
 import { API_URL, IMAGES_URL } from "../../config";
@@ -23,8 +23,19 @@ export default function Settings() {
   const [bio, setBio] = useState<string>("");
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [previewUrl, setPreviewUrl] = useState<string>("");
 
   const { user, token, dispatch, theme } = useContext(Context);
+
+  useEffect(() => {
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl("");
+    }
+  }, [file]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -83,8 +94,8 @@ export default function Settings() {
           <div className="settingsPP">
             <img
               src={
-                file
-                  ? URL.createObjectURL(file)
+                previewUrl
+                  ? previewUrl
                   : user!.profilePic
                   ? `${IMAGES_URL}/${user!.profilePic}`
                   : `${IMAGES_URL}/${DEFAULT_AVATAR}`

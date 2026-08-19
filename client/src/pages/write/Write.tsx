@@ -1,4 +1,5 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect, useRef } from "react";
+import { useHistory } from "react-router-dom";
 import axios from "axios";
 import { Context } from "../../context/Context";
 import { API_URL } from "../../config";
@@ -26,7 +27,17 @@ export default function Write() {
   const [location, setLocation] = useState<Location>({} as Location);
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const { token } = useContext(Context);
+  const history = useHistory();
+
+  useEffect(() => {
+    const urls = files.map((file) => URL.createObjectURL(file));
+    setPreviewUrls(urls);
+    return () => {
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [files]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files || []);
@@ -56,7 +67,7 @@ export default function Write() {
     return filenames;
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>, status: string = "published") => {
+  const handleSubmit = async (e: React.FormEvent | React.MouseEvent, status: string = "published") => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -97,9 +108,9 @@ export default function Write() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (status === "draft") {
-        window.location.replace("/dashboard");
+        history.push("/dashboard");
       } else {
-        window.location.replace("/post/" + res.data._id);
+        history.push("/post/" + res.data._id);
       }
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string } } };
@@ -112,8 +123,8 @@ export default function Write() {
     <div className="write">
       {files.length > 0 && (
         <div className="writePreview">
-          {files.map((file, i) => (
-            <img key={i} className="writePreviewImg" src={URL.createObjectURL(file)} alt="" />
+          {previewUrls.map((url, i) => (
+            <img key={i} className="writePreviewImg" src={url} alt="" />
           ))}
         </div>
       )}
@@ -185,7 +196,7 @@ export default function Write() {
             className="writeDraftBtn"
             type="button"
             disabled={loading}
-            onClick={(e) => handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>, "draft")}
+            onClick={(e) => handleSubmit(e, "draft")}
           >
             Save Draft
           </button>

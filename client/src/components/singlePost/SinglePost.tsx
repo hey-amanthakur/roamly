@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState, KeyboardEvent } from "react";
 import axios from "axios";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, useHistory, Link } from "react-router-dom";
 import { Context } from "../../context/Context";
 import { API_URL, IMAGES_URL } from "../../config";
 import ShareButton from "../shareButton/ShareButton";
@@ -22,36 +22,45 @@ export default function SinglePost() {
   const [error, setError] = useState<string>("");
   const [relatedPosts, setRelatedPosts] = useState<Post[]>([]);
   const [showReport, setShowReport] = useState<boolean>(false);
+  const history = useHistory();
 
   useEffect(() => {
+    const controller = new AbortController();
     const getPost = async (): Promise<void> => {
       setLoading(true);
       try {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        const res = await axios.get<Post>(`${API_URL}/posts/${path}`, { headers });
+        const res = await axios.get<Post>(`${API_URL}/posts/${path}`, { headers, signal: controller.signal });
         setPost(res.data);
         setTitle(res.data.title);
         setDesc(res.data.desc);
-      } catch (err) {
-        setError("Failed to load post");
+      } catch (err: any) {
+        if (err.name !== "CanceledError") {
+          setError("Failed to load post");
+        }
       } finally {
         setLoading(false);
       }
     };
     getPost();
+    return () => controller.abort();
   }, [path, token]);
 
   useEffect(() => {
     if (post._id) {
+      const controller = new AbortController();
       const fetchRelated = async (): Promise<void> => {
         try {
-          const res = await axios.get<Post[]>(`${API_URL}/posts/${post._id}/related`);
+          const res = await axios.get<Post[]>(`${API_URL}/posts/${post._id}/related`, { signal: controller.signal });
           setRelatedPosts(res.data);
-        } catch (err) {
-          // ignore
+        } catch (err: any) {
+          if (err.name !== "CanceledError") {
+            // ignore
+          }
         }
       };
       fetchRelated();
+      return () => controller.abort();
     }
   }, [post._id]);
 
@@ -60,7 +69,7 @@ export default function SinglePost() {
       await axios.delete(`${API_URL}/posts/${post._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      window.location.replace("/");
+      history.push("/");
     } catch (err) {
       setError("Failed to delete post");
     }
@@ -82,7 +91,7 @@ export default function SinglePost() {
 
   const handleLike = async (): Promise<void> => {
     if (!token) {
-      window.location.replace("/login");
+      history.push("/login");
       return;
     }
     try {
@@ -99,13 +108,14 @@ export default function SinglePost() {
           : (prev.likes || []).filter((id: string) => id !== user!._id),
       }));
     } catch (err) {
-      console.error("Failed to toggle like");
+      setError("Failed to toggle like");
+      setTimeout(() => setError(""), 2000);
     }
   };
 
   const handleBookmark = async (): Promise<void> => {
     if (!token) {
-      window.location.replace("/login");
+      history.push("/login");
       return;
     }
     try {
@@ -122,7 +132,8 @@ export default function SinglePost() {
           : (prev.bookmarks || []).filter((id: string) => id !== user!._id),
       }));
     } catch (err) {
-      console.error("Failed to toggle bookmark");
+      setError("Failed to toggle bookmark");
+      setTimeout(() => setError(""), 2000);
     }
   };
 
@@ -326,7 +337,7 @@ export default function SinglePost() {
                   <div>
                     <span className="relatedPostTitle">{rp.title}</span>
                     <span className="relatedPostMeta">
-                      {rp.likes.length} likes · {rp.views} views
+                      {rp.likes?.length || 0} likes · {rp.views || 0} views
                     </span>
                   </div>
                 </Link>

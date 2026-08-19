@@ -44,6 +44,12 @@ function App() {
           <Route path="/post/:postId">
             <Single />
           </Route>
+          <Route path="*">
+            <div style={{ textAlign: "center", marginTop: "60px" }}>
+              <h1>404</h1>
+              <p>Page not found</p>
+            </div>
+          </Route>
         </Switch>
       </div>
     </Router>

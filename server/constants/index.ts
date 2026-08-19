@@ -16,6 +16,7 @@ export const JWT_EXPIRY = "3d";
 export const FILE_UPLOAD = {
   MAX_SIZE: 5 * 1024 * 1024,
   ALLOWED_EXTENSIONS: /jpeg|jpg|png|gif|webp/,
+  ALLOWED_MIMES: ["image/jpeg", "image/png", "image/gif", "image/webp"],
 } as const;
 
 export const TRENDING_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
