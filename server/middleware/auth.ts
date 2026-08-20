@@ -20,7 +20,7 @@ export const verifyToken = (
 
   const token = authHeader.split(" ")[1];
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, JWT_SECRET as string) as JwtPayload;
     req.user = decoded;
     next();
   } catch (err) {
@@ -37,7 +37,7 @@ export const optionalToken = (
   if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+      const decoded = jwt.verify(token, JWT_SECRET as string) as JwtPayload;
       req.user = decoded;
     } catch (err) {
       // Token invalid — continue without user

@@ -4,6 +4,7 @@ import Post from "../models/Post";
 import { verifyToken } from "../middleware/auth";
 import { PAGE_LIMITS } from "../constants";
 import { AuthRequest } from "../types";
+import { lock } from "../middleware/lock";
 
 const router = Router();
 
@@ -41,20 +42,28 @@ router.put("/posts/:id", verifyToken, async (req: AuthRequest, res: Response): P
       return;
     }
 
-    const addResult = await User.findOneAndUpdate(
-      { _id: req.user!.id, bookmarks: { $ne: req.params.id } },
-      { $push: { bookmarks: req.params.id } },
-      { new: true }
+    const toggleResult = await lock.withLock(
+      `bookmark:${req.user!.id}:${req.params.id}`,
+      async () => {
+        const addResult = await User.findOneAndUpdate(
+          { _id: req.user!.id, bookmarks: { $ne: req.params.id as any } },
+          { $push: { bookmarks: req.params.id } },
+          { new: true }
+        );
+
+        if (addResult) {
+          await post.updateOne({ $push: { bookmarks: req.user!.id } });
+          return { bookmarked: true, message: "Post bookmarked" };
+        } else {
+          await User.findByIdAndUpdate(req.user!.id, { $pull: { bookmarks: req.params.id } });
+          await post.updateOne({ $pull: { bookmarks: req.user!.id } });
+          return { bookmarked: false, message: "Bookmark removed" };
+        }
+      },
+      { ttlMs: 3000 }
     );
 
-    if (addResult) {
-      await post.updateOne({ $push: { bookmarks: req.user!.id } });
-      res.status(200).json({ message: "Post bookmarked", bookmarked: true });
-    } else {
-      await User.findByIdAndUpdate(req.user!.id, { $pull: { bookmarks: req.params.id } });
-      await post.updateOne({ $pull: { bookmarks: req.user!.id } });
-      res.status(200).json({ message: "Bookmark removed", bookmarked: false });
-    }
+    res.status(200).json(toggleResult);
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }

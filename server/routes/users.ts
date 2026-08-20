@@ -10,6 +10,7 @@ import {
 } from "../constants";
 import { AuthRequest } from "../types";
 import { sanitizeText } from "../utils/sanitize";
+import { lock } from "../middleware/lock";
 
 const router = Router();
 
@@ -214,24 +215,36 @@ router.put("/:id/follow", verifyToken, async (req: AuthRequest, res: Response): 
   }
 
   try {
-    const user = await User.findById(req.params.id);
-    const currentUser = await User.findById(req.user!.id);
+    await lock.withLock(
+      `follow:${req.params.id}`,
+      async () => {
+        const user = await User.findById(req.params.id);
+        const currentUser = await User.findById(req.user!.id);
 
-    if (!user || !currentUser) {
+        if (!user || !currentUser) {
+          throw new Error("USER_NOT_FOUND");
+        }
+
+        if (currentUser.followings.includes(user._id)) {
+          throw new Error("ALREADY_FOLLOWING");
+        }
+
+        await user.updateOne({ $push: { followers: req.user!.id } });
+        await currentUser.updateOne({ $push: { followings: req.params.id } });
+      },
+      { ttlMs: 3000 }
+    );
+
+    res.status(200).json({ message: "User has been followed" });
+  } catch (err: any) {
+    if (err.message === "USER_NOT_FOUND") {
       res.status(404).json({ message: "User not found" });
       return;
     }
-
-    if (currentUser.followings.includes(user._id)) {
+    if (err.message === "ALREADY_FOLLOWING") {
       res.status(400).json({ message: "Already following this user" });
       return;
     }
-
-    await user.updateOne({ $push: { followers: req.user!.id } });
-    await currentUser.updateOne({ $push: { followings: req.params.id } });
-
-    res.status(200).json({ message: "User has been followed" });
-  } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -265,24 +278,36 @@ router.put("/:id/unfollow", verifyToken, async (req: AuthRequest, res: Response)
   }
 
   try {
-    const user = await User.findById(req.params.id);
-    const currentUser = await User.findById(req.user!.id);
+    await lock.withLock(
+      `follow:${req.params.id}`,
+      async () => {
+        const user = await User.findById(req.params.id);
+        const currentUser = await User.findById(req.user!.id);
 
-    if (!user || !currentUser) {
+        if (!user || !currentUser) {
+          throw new Error("USER_NOT_FOUND");
+        }
+
+        if (!currentUser.followings.includes(user._id)) {
+          throw new Error("NOT_FOLLOWING");
+        }
+
+        await user.updateOne({ $pull: { followers: req.user!.id } });
+        await currentUser.updateOne({ $pull: { followings: req.params.id } });
+      },
+      { ttlMs: 3000 }
+    );
+
+    res.status(200).json({ message: "User has been unfollowed" });
+  } catch (err: any) {
+    if (err.message === "USER_NOT_FOUND") {
       res.status(404).json({ message: "User not found" });
       return;
     }
-
-    if (!currentUser.followings.includes(user._id)) {
+    if (err.message === "NOT_FOLLOWING") {
       res.status(400).json({ message: "Not following this user" });
       return;
     }
-
-    await user.updateOne({ $pull: { followers: req.user!.id } });
-    await currentUser.updateOne({ $pull: { followings: req.params.id } });
-
-    res.status(200).json({ message: "User has been unfollowed" });
-  } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
 });

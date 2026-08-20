@@ -10,6 +10,7 @@ import {
 } from "../constants";
 import { AuthRequest, PaginatedResponse, IPostDocument } from "../types";
 import { sanitizeText } from "../utils/sanitize";
+import { lock } from "../middleware/lock";
 
 const router = Router();
 
@@ -510,10 +511,16 @@ router.put("/:id/like", verifyToken, async (req: AuthRequest, res: Response): Pr
       return;
     }
 
-    const result = await Post.findOneAndUpdate(
-      { _id: req.params.id, likes: { $ne: req.user!.id } },
-      { $push: { likes: req.user!.id } },
-      { new: true }
+    const result = await lock.withLock(
+      `post:${req.params.id}`,
+      async () => {
+        return Post.findOneAndUpdate(
+          { _id: req.params.id, likes: { $ne: req.user!.id as any } },
+          { $push: { likes: req.user!.id } },
+          { new: true }
+        );
+      },
+      { ttlMs: 3000 }
     );
 
     if (result) {

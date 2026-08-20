@@ -1,47 +1,45 @@
 import { Request, Response, NextFunction } from "express";
+import { MemoryStore, RateLimiter } from "@hey-amanthakur/throttle-box";
 
-interface RateLimitEntry {
-  count: number;
-  resetTime: number;
+const store = new MemoryStore();
+
+const limiter = new RateLimiter(store, {
+  capacity: 100,
+  refillRate: 10,
+});
+
+function applyHeaders(res: Response, result: { remaining: number; capacity: number; refillRate: number; retryAfterMs: number; resetAt: number }) {
+  res.set("RateLimit-Limit", String(result.capacity));
+  res.set("RateLimit-Remaining", String(result.remaining));
+  res.set("RateLimit-Reset", String(Math.ceil(result.resetAt / 1000)));
+  res.set("RateLimit-Policy", `${result.capacity};w=1`);
+  if (result.retryAfterMs > 0) {
+    res.set("Retry-After", String(Math.ceil(result.retryAfterMs / 1000)));
+  }
 }
 
-const store = new Map<string, RateLimitEntry>();
+export function globalRateLimit(req: Request, res: Response, next: NextFunction): void {
+  const path = req.path;
+  const isAuth = path === "/api/auth/register" || path === "/api/auth/login";
+  const isWrite = req.method !== "GET";
 
-export function rateLimit(options: {
-  windowMs: number;
-  max: number;
-  message?: string;
-}) {
-  const { windowMs, max, message = "Too many requests, please try again later" } = options;
+  const override = isAuth
+    ? { capacity: 5, refillRate: 1 / 15 }
+    : isWrite
+      ? { capacity: 30, refillRate: 2 }
+      : {};
 
-  return (req: Request, res: Response, next: NextFunction): void => {
-    const key = req.ip || req.socket.remoteAddress || "unknown";
-    const now = Date.now();
-    const entry = store.get(key);
-
-    if (!entry || now > entry.resetTime) {
-      store.set(key, { count: 1, resetTime: now + windowMs });
-      next();
-      return;
-    }
-
-    entry.count++;
-    if (entry.count > max) {
-      res.status(429).json({ message });
+  limiter.decide({ req, config: override }).then(({ result }) => {
+    applyHeaders(res, result);
+    if (!result.allowed) {
+      res.status(429).json({
+        message: "Too many requests, please try again later",
+        retryAfterMs: result.retryAfterMs,
+      });
       return;
     }
     next();
-  };
+  });
 }
 
-// Cleanup stale entries every 5 minutes (skip in test environment)
-if (process.env.NODE_ENV !== "test") {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of store.entries()) {
-      if (now > entry.resetTime) {
-        store.delete(key);
-      }
-    }
-  }, 5 * 60 * 1000);
-}
+export { limiter as rateLimiter };

@@ -10,6 +10,10 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@hey-amanthakur/coord-box": "^1.0.1",
+    "@hey-amanthakur/lock-box": "^1.0.1",
+    "@hey-amanthakur/retry-box": "^1.0.0",
+    "@hey-amanthakur/throttle-box": "^1.0.0",
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",

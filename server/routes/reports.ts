@@ -5,6 +5,7 @@ import Post from "../models/Post";
 import User from "../models/User";
 import { verifyToken } from "../middleware/auth";
 import { AuthRequest } from "../types";
+import { idempotencyRegistry } from "../middleware/idempotency";
 
 const router = Router();
 
@@ -65,46 +66,83 @@ router.post("/", verifyToken, async (req: AuthRequest, res: Response): Promise<v
     return;
   }
 
+  const idempotencyKey = `report:${req.user!.id}:${targetType}:${targetId}`;
+
   try {
-    const targetObjectId = new mongoose.Types.ObjectId(targetId);
+    const { record, replayed } = await idempotencyRegistry.execute(
+      idempotencyKey,
+      async () => {
+        const targetObjectId = new mongoose.Types.ObjectId(targetId);
 
-    if (targetType === "post") {
-      const exists = await Post.findById(targetObjectId);
-      if (!exists) {
-        res.status(404).json({ message: "Target not found" });
-        return;
-      }
-    } else if (targetType === "user") {
-      const exists = await User.findById(targetObjectId);
-      if (!exists) {
-        res.status(404).json({ message: "Target not found" });
-        return;
-      }
-    }
+        if (targetType === "post") {
+          const exists = await Post.findById(targetObjectId);
+          if (!exists) {
+            throw new Error("TARGET_NOT_FOUND");
+          }
+        } else if (targetType === "user") {
+          const exists = await User.findById(targetObjectId);
+          if (!exists) {
+            throw new Error("TARGET_NOT_FOUND");
+          }
+        }
 
-    const existingReport = await Report.findOne({
-      reporterId: req.user!.id,
-      targetType,
-      targetId: targetObjectId,
-    });
+        const existingReport = await Report.findOne({
+          reporterId: req.user!.id,
+          targetType,
+          targetId: targetObjectId,
+        });
 
-    if (existingReport) {
-      res.status(400).json({ message: "You have already reported this" });
+        if (existingReport) {
+          throw new Error("ALREADY_REPORTED");
+        }
+
+        const report = new Report({
+          reporterId: req.user!.id,
+          reporterUsername: req.user!.username,
+          targetType,
+          targetId: targetObjectId,
+          reason,
+          description: description || "",
+        });
+
+        await report.save();
+        return { message: "Report submitted" };
+      },
+      { ttlMs: 60 * 1000 }
+    );
+
+    if (replayed && record.state === "completed") {
+      res.status(201).json({ message: "Report submitted" });
       return;
     }
 
-    const report = new Report({
-      reporterId: req.user!.id,
-      reporterUsername: req.user!.username,
-      targetType,
-      targetId: targetObjectId,
-      reason,
-      description: description || "",
-    });
+    if (record.state === "failed" && record.error) {
+      const errorMsg =
+        typeof record.error === "object" && record.error !== null && "message" in record.error
+          ? String((record.error as { message: unknown }).message)
+          : String(record.error);
+      if (errorMsg === "TARGET_NOT_FOUND") {
+        res.status(404).json({ message: "Target not found" });
+        return;
+      }
+      if (errorMsg === "ALREADY_REPORTED") {
+        res.status(400).json({ message: "You have already reported this" });
+        return;
+      }
+      res.status(500).json({ message: "Server error" });
+      return;
+    }
 
-    await report.save();
     res.status(201).json({ message: "Report submitted" });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.message === "TARGET_NOT_FOUND") {
+      res.status(404).json({ message: "Target not found" });
+      return;
+    }
+    if (err.message === "ALREADY_REPORTED") {
+      res.status(400).json({ message: "You have already reported this" });
+      return;
+    }
     res.status(500).json({ message: "Server error" });
   }
 });

@@ -11,11 +11,11 @@ export function sanitizeObject<T extends Record<string, any>>(
   obj: T,
   fields: string[]
 ): T {
-  const sanitized = { ...obj };
+  const sanitized: Record<string, any> = { ...obj };
   for (const field of fields) {
     if (typeof sanitized[field] === "string") {
       sanitized[field] = sanitizeText(sanitized[field]);
     }
   }
-  return sanitized;
+  return sanitized as T;
 }

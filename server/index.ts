@@ -6,6 +6,7 @@ import path from "path";
 import cors from "cors";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import { RetryEngine, exponential } from "@hey-amanthakur/retry-box";
 
 import authRoute from "./routes/auth";
 import userRoute from "./routes/users";
@@ -18,6 +19,7 @@ import newsletterRoute from "./routes/newsletter";
 import analyticsRoute from "./routes/analytics";
 import { FILE_UPLOAD } from "./constants";
 import { verifyToken } from "./middleware/auth";
+import { globalRateLimit } from "./middleware/rateLimit";
 
 dotenv.config();
 
@@ -71,11 +73,27 @@ app.get("/api-docs.json", (req: Request, res: Response) => {
   res.send(swaggerSpec);
 });
 
-// MongoDB connection
-(mongoose as any)
-  .connect(process.env.MONGO_URL || "mongodb://localhost:27017/travel-blog")
+// MongoDB connection with retry (retry-box)
+const mongoRetry = new RetryEngine({
+  maxAttempts: 5,
+  strategy: exponential({ initialDelay: 1000, multiplier: 2, maxDelay: 15000 }),
+  timeout: 10000,
+});
+
+mongoRetry
+  .run(() =>
+    (mongoose as any).connect(
+      process.env.MONGO_URL || "mongodb://localhost:27017/travel-blog"
+    )
+  )
   .then(() => console.log("Connected to MongoDB"))
-  .catch((err: any) => console.log(err));
+  .catch((err: any) => {
+    console.error("Failed to connect to MongoDB after retries:", err.message);
+    process.exit(1);
+  });
+
+// Global rate limiting (throttle-box)
+app.use(globalRateLimit);
 
 app.use(cors());
 app.use(express.json());

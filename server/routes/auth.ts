@@ -8,16 +8,9 @@ import {
   PASSWORD_MIN_LENGTH,
 } from "../constants";
 import { IUserDocument } from "../types";
-import { rateLimit } from "../middleware/rateLimit";
 import { sanitizeText } from "../utils/sanitize";
 
 const router = Router();
-
-const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: "Too many authentication attempts, please try again later",
-});
 
 const generateToken = (userId: string, username: string): string => {
   const secret = process.env.JWT_SECRET;
@@ -61,7 +54,7 @@ const generateToken = (userId: string, username: string): string => {
  *       500:
  *         description: Server error
  */
-router.post("/register", authRateLimit, async (req: Request, res: Response): Promise<void> => {
+router.post("/register", async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, email, password } = req.body;
 
@@ -127,7 +120,7 @@ router.post("/register", authRateLimit, async (req: Request, res: Response): Pro
  *       500:
  *         description: Server error
  */
-router.post("/login", authRateLimit, async (req: Request, res: Response): Promise<void> => {
+router.post("/login", async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 
