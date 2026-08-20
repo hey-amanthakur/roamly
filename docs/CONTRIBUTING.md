@@ -18,7 +18,7 @@ The client hot-reloads on file changes. Server uses nodemon for auto-restart.
 ```bash
 # Terminal 1 — Server
 cd server
-cp .env.example .env   # edit MONGO_URL to mongodb://localhost:27017/travel-blog
+cp .env.example .env   # edit MONGO_URL to mongodb://localhost:27017/roamly
 npm install
 npm run dev
 

@@ -32,10 +32,10 @@ const swaggerOptions: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "Travel Experience Sharing Platform API",
-      version: "1.0.0",
-      description:
-        "API for a travel experience sharing platform with posts, users, bookmarks, comments, and more.",
+      title: "Roamly API",
+        version: "1.0.0",
+        description:
+          "API for Roamly — a travel experience sharing platform with posts, users, bookmarks, comments, and more.",
       contact: {
         name: "Aman Thakur",
         url: "https://github.com/amanthakur",
@@ -65,7 +65,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: ".swagger-ui .topbar { display: none }",
-  customSiteTitle: "Travel Platform API Docs",
+  customSiteTitle: "Roamly API Docs",
 }));
 
 // Serve Swagger spec as JSON
@@ -84,7 +84,7 @@ const mongoRetry = new RetryEngine({
 mongoRetry
   .run(() =>
     (mongoose as any).connect(
-      process.env.MONGO_URL || "mongodb://localhost:27017/travel-blog"
+      process.env.MONGO_URL || "mongodb://localhost:27017/roamly"
     )
   )
   .then(() => console.log("Connected to MongoDB"))

@@ -15,7 +15,7 @@ Docker Compose runs 3 services for local development:
 ```bash
 # Clone and setup
 git clone <repo-url>
-cd travel-experience-sharing-platform
+cd roamly
 cp .env.example .env
 
 # Build and start
@@ -58,7 +58,7 @@ docker compose exec mongo mongosh
 Copy `.env.example` to `.env` and configure:
 
 ```env
-MONGO_URL=mongodb://mongo:27017/travel-blog
+MONGO_URL=mongodb://mongo:27017/roamly
 JWT_SECRET=your-secret-key-change-this
 PORT=5001
 ```
@@ -76,7 +76,7 @@ PORT=5001
 
 ## Networking
 
-All services communicate on the `travel-net` Docker network.
+All services communicate on the `roamly-net` Docker network.
 
 - Client → Server: `http://server:5001`
 - Server → Mongo: `mongodb://mongo:27017`

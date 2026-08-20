@@ -1,6 +1,6 @@
 <div align="center">
 
-# Travel Experience Sharing Platform
+# Roamly
 
 **A full-stack web application for sharing travel experiences, stories, and photos with the world.**
 
@@ -21,7 +21,7 @@
 
 ## Overview
 
-TravelExperience is a platform where travelers share their adventures through stories, photos, and location-tagged posts. Users can discover trending destinations, follow fellow travelers, bookmark inspiring content, and engage through comments and likes.
+Roamly is a platform where travelers share their adventures through stories, photos, and location-tagged posts. Users can discover trending destinations, follow fellow travelers, bookmark inspiring content, and engage through comments and likes.
 
 ## Features
 
@@ -70,7 +70,7 @@ TravelExperience is a platform where travelers share their adventures through st
 |---------|-------------|
 | **Report Content** | Report posts/comments/users with 6 reason categories |
 | **Input Validation** | Server + client validation on all endpoints |
-| **Secure Uploads** | File type filtering, size limits, randomized filenames |
+| **Secure Uploads** | File type filtering, size limits, GridFS storage |
 
 ### Growth
 
@@ -86,7 +86,7 @@ TravelExperience is a platform where travelers share their adventures through st
 |-------|------------|
 | **Client** | React 17, React Router v5, Axios, Context API |
 | **Server** | Node.js, Express, Mongoose, Multer, JWT, bcrypt |
-| **Database** | MongoDB 5 |
+| **Database** | MongoDB 5, GridFS (image storage) |
 | **DevOps** | Docker, Docker Compose |
 | **Auth** | JWT (3-day expiry), bcrypt (10 rounds) |
 
@@ -101,8 +101,8 @@ TravelExperience is a platform where travelers share their adventures through st
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/travel-experience-sharing-platform.git
-cd travel-experience-sharing-platform
+git clone https://github.com/hey-amanthakur/roamly.git
+cd roamly
 
 # Configure environment
 cp .env.example .env
@@ -117,7 +117,7 @@ docker compose up --build
 # Terminal 1 — Server
 cd server
 cp .env.example .env
-# Edit .env: set MONGO_URL=mongodb://localhost:27017/travel-blog
+# Edit .env: set MONGO_URL=mongodb://localhost:27017/roamly
 npm install
 npm run dev
 
@@ -158,7 +158,7 @@ curl -X POST http://localhost:5001/api/categories \
 ## Project Structure
 
 ```
-travel-experience-sharing-platform/
+roamly/
 ├── client/                          # React frontend
 │   ├── src/
 │   │   ├── components/
@@ -185,31 +185,35 @@ travel-experience-sharing-platform/
 │   │   │   ├── single/              # Single post page
 │   │   │   ├── trending/            # Trending posts
 │   │   │   └── write/               # Create/edit posts
-│   │   ├── config.js                # API URL configuration
-│   │   ├── App.js                   # Router setup
-│   │   └── index.js                 # Entry point
+│   │   ├── config.ts                # API URL configuration
+│   │   ├── App.tsx                  # Router setup
+│   │   └── index.tsx                # Entry point
 │   └── Dockerfile
 ├── server/                          # Express API
 │   ├── middleware/
-│   │   └── auth.js                  # JWT verification middleware
+│   │   ├── auth.ts                  # JWT verification middleware
+│   │   ├── idempotency.ts           # Idempotency registry
+│   │   ├── lock.ts                  # Distributed lock
+│   │   └── rateLimit.ts             # Throttle-box rate limiting
 │   ├── models/
-│   │   ├── Category.js              # Category schema
-│   │   ├── Newsletter.js            # Newsletter subscription schema
-│   │   ├── Post.js                  # Post schema (tags, gallery, location, comments, likes, bookmarks, views)
-│   │   ├── Report.js                # Content report schema
-│   │   └── User.js                  # User schema (followers, bookmarks, preferences)
+│   │   ├── Category.ts              # Category schema
+│   │   ├── Newsletter.ts            # Newsletter subscription schema
+│   │   ├── Post.ts                  # Post schema (tags, gallery, location, comments, likes, bookmarks, views)
+│   │   ├── Report.ts                # Content report schema
+│   │   └── User.ts                  # User schema (followers, bookmarks, preferences)
 │   ├── routes/
-│   │   ├── analytics.js             # Author dashboard + post analytics
-│   │   ├── auth.js                  # Register + login
-│   │   ├── bookmarks.js             # Toggle + list bookmarks
-│   │   ├── categories.js            # CRUD categories
-│   │   ├── newsletter.js            # Subscribe + unsubscribe
-│   │   ├── posts.js                 # CRUD + like + comment + feed + related + drafts
-│   │   ├── reports.js               # Content reporting
-│   │   ├── search.js                # Full-text search
-│   │   └── users.js                 # CRUD + follow/unfollow
-│   ├── images/                      # Uploaded images (git-ignored)
-│   ├── index.js                     # Server entry point
+│   │   ├── analytics.ts             # Author dashboard + post analytics
+│   │   ├── auth.ts                  # Register + login
+│   │   ├── bookmarks.ts             # Toggle + list bookmarks
+│   │   ├── categories.ts            # CRUD categories
+│   │   ├── newsletter.ts            # Subscribe + unsubscribe
+│   │   ├── posts.ts                 # CRUD + like + comment + feed + related + drafts
+│   │   ├── reports.ts               # Content reporting
+│   │   ├── search.ts                # Full-text search
+│   │   └── users.ts                 # CRUD + follow/unfollow
+│   ├── utils/
+│   │   └── sanitize.ts              # Input sanitization
+│   ├── index.ts                     # Server entry point (GridFS, Swagger)
 │   └── Dockerfile
 ├── docs/
 │   ├── API.md                       # Full API reference
@@ -278,7 +282,8 @@ travel-experience-sharing-platform/
 | POST | `/api/newsletter/unsubscribe` | No | Unsubscribe |
 | GET | `/api/analytics/dashboard` | Yes | Author analytics dashboard |
 | GET | `/api/analytics/posts/:id` | Yes | Single post analytics |
-| POST | `/api/upload` | Yes | Upload image |
+| POST | `/api/upload` | Yes | Upload image (GridFS) |
+| GET | `/api/images/:filename` | No | Serve image from GridFS |
 | POST | `/api/categories` | No | Create category |
 | GET | `/api/categories` | No | List categories |
 
@@ -290,11 +295,11 @@ travel-experience-sharing-platform/
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `MONGO_URL` | MongoDB connection string | `mongodb://localhost:27017/travel-blog` |
+| `MONGO_URL` | MongoDB connection string | `mongodb://localhost:27017/roamly` |
 | `JWT_SECRET` | Secret key for JWT signing | — (required) |
 | `PORT` | Server port | `5001` |
 | `REACT_APP_API_URL` | API base URL for client | `http://localhost:5001/api` |
-| `REACT_APP_IMAGES_URL` | Images base URL for client | `http://localhost:5001/images` |
+| `REACT_APP_IMAGES_URL` | Images base URL for client | `http://localhost:5001/api/images` |
 
 ## Contributing
 

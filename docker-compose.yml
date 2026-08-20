@@ -6,7 +6,7 @@ services:
     volumes:
       - mongo-data:/data/db
     networks:
-      - travel-net
+      - roamly-net
 
   server:
     build:
@@ -14,16 +14,14 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5001:5001"
-    volumes:
-      - ./server/images:/app/images
     environment:
-      - MONGO_URL=mongodb://mongo:27017/travel-blog
+      - MONGO_URL=mongodb://mongo:27017/roamly
       - JWT_SECRET=${JWT_SECRET:-change-this-to-a-random-secret-string}
       - PORT=5001
     depends_on:
       - mongo
     networks:
-      - travel-net
+      - roamly-net
 
   client:
     build:
@@ -36,15 +34,15 @@ services:
       - /app/client/node_modules
     environment:
       - REACT_APP_API_URL=http://localhost:5001/api
-      - REACT_APP_IMAGES_URL=http://localhost:5001/images
+      - REACT_APP_IMAGES_URL=http://localhost:5001/api/images
     depends_on:
       - server
     networks:
-      - travel-net
+      - roamly-net
 
 volumes:
   mongo-data:
 
 networks:
-  travel-net:
+  roamly-net:
     driver: bridge
