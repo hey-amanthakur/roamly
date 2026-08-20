@@ -1,9 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
-import fs from "fs";
 import mongoose from "mongoose";
 import multer from "multer";
 import path from "path";
+import { Readable } from "stream";
 import cors from "cors";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
@@ -26,8 +26,6 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5001;
-const IMAGES_DIR = path.join(process.cwd(), "images");
-fs.mkdirSync(IMAGES_DIR, { recursive: true });
 
 // Swagger configuration
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -100,47 +98,32 @@ app.use(globalRateLimit);
 
 app.use(cors());
 app.use(express.json());
-app.use("/images", express.static(IMAGES_DIR));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello, server is up and running...");
 });
 
-// File upload configuration
-const storage = multer.diskStorage({
-  destination: (req: Request, file: Express.Multer.File, cb: any) => {
-    cb(null, IMAGES_DIR);
-  },
-  filename: (req: Request, file: Express.Multer.File, cb: any) => {
-    if (req.body.name) {
-      cb(null, req.body.name);
-    } else {
-      const ext = path.extname(file.originalname);
-      const safeName = Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
-      cb(null, safeName);
-    }
-  },
+// GridFS bucket (initialized after MongoDB connects)
+let gfs: InstanceType<typeof mongoose.mongo.GridFSBucket>;
+mongoose.connection.on("open", () => {
+  gfs = new mongoose.mongo.GridFSBucket(mongoose.connection.db!, { bucketName: "uploads" });
+  console.log("GridFS bucket initialized");
 });
 
-const fileFilter = (
-  req: Request,
-  file: Express.Multer.File,
-  cb: any
-): void => {
-  const extOk = FILE_UPLOAD.ALLOWED_EXTENSIONS.test(
-    path.extname(file.originalname).toLowerCase()
-  );
-  const mimeOk = (FILE_UPLOAD.ALLOWED_MIMES as readonly string[]).includes(file.mimetype);
-  if (extOk && mimeOk) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only image files are allowed (jpg, png, gif, webp)"));
-  }
-};
-
+// File upload configuration (memory storage — files buffered then written to GridFS)
 const upload = multer({
-  storage,
-  fileFilter,
+  storage: multer.memoryStorage(),
+  fileFilter: (req: Request, file: Express.Multer.File, cb: any): void => {
+    const extOk = FILE_UPLOAD.ALLOWED_EXTENSIONS.test(
+      path.extname(file.originalname).toLowerCase()
+    );
+    const mimeOk = (FILE_UPLOAD.ALLOWED_MIMES as readonly string[]).includes(file.mimetype);
+    if (extOk && mimeOk) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed (jpg, png, gif, webp)"));
+    }
+  },
   limits: { fileSize: FILE_UPLOAD.MAX_SIZE },
 });
 
@@ -171,14 +154,84 @@ app.post(
   "/api/upload",
   verifyToken,
   upload.single("file"),
-  (req: Request, res: Response) => {
+  async (req: Request, res: Response) => {
     if (!req.file) {
       res.status(400).json({ message: "No file uploaded" });
       return;
     }
-    res.status(200).json({ filename: req.file.filename });
+    if (!gfs) {
+      res.status(503).json({ message: "Storage not ready" });
+      return;
+    }
+
+    const filename = req.body.name || req.file.originalname;
+    const ext = path.extname(req.file.originalname);
+    const contentType = req.file.mimetype;
+
+    const uploadStream = gfs.openUploadStream(filename, {
+      contentType,
+      metadata: { originalName: req.file.originalname, ext },
+    });
+
+    const readableStream = new Readable();
+    readableStream.push(req.file.buffer);
+    readableStream.push(null);
+
+    readableStream.pipe(uploadStream);
+
+    uploadStream.on("finish", () => {
+      res.status(200).json({ filename });
+    });
+    uploadStream.on("error", (err: Error) => {
+      res.status(500).json({ message: "Upload failed: " + err.message });
+    });
   }
 );
+
+/**
+ * @swagger
+ * /api/images/{filename}:
+ *   get:
+ *     summary: Serve an image from GridFS
+ *     tags: [Upload]
+ *     parameters:
+ *       - in: path
+ *         name: filename
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Image file
+ *       404:
+ *         description: File not found
+ */
+app.get("/api/images/:filename", async (req: Request, res: Response) => {
+  if (!gfs) {
+    res.status(503).json({ message: "Storage not ready" });
+    return;
+  }
+
+  try {
+    const files = await gfs.find({ filename: req.params.filename }).toArray();
+    if (!files || files.length === 0) {
+      res.status(404).json({ message: "File not found" });
+      return;
+    }
+
+    const file = files[0];
+    res.set("Content-Type", file.contentType || "application/octet-stream");
+    res.set("Cache-Control", "public, max-age=31536000, immutable");
+
+    const downloadStream = gfs.openDownloadStream(file._id);
+    downloadStream.pipe(res);
+    downloadStream.on("error", () => {
+      res.status(404).json({ message: "File not found" });
+    });
+  } catch {
+    res.status(500).json({ message: "Error retrieving file" });
+  }
+});
 
 // Routes
 app.use("/api/auth", authRoute);
