@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
+import fs from "fs";
 import mongoose from "mongoose";
 import multer from "multer";
 import path from "path";
@@ -25,6 +26,8 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 5001;
+const IMAGES_DIR = path.join(process.cwd(), "images");
+fs.mkdirSync(IMAGES_DIR, { recursive: true });
 
 // Swagger configuration
 const swaggerOptions: swaggerJsdoc.Options = {
@@ -97,7 +100,7 @@ app.use(globalRateLimit);
 
 app.use(cors());
 app.use(express.json());
-app.use("/images", express.static(path.join(__dirname, "images")));
+app.use("/images", express.static(IMAGES_DIR));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello, server is up and running...");
@@ -106,12 +109,16 @@ app.get("/", (req: Request, res: Response) => {
 // File upload configuration
 const storage = multer.diskStorage({
   destination: (req: Request, file: Express.Multer.File, cb: any) => {
-    cb(null, "images");
+    cb(null, IMAGES_DIR);
   },
   filename: (req: Request, file: Express.Multer.File, cb: any) => {
-    const ext = path.extname(file.originalname);
-    const safeName = Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
-    cb(null, safeName);
+    if (req.body.name) {
+      cb(null, req.body.name);
+    } else {
+      const ext = path.extname(file.originalname);
+      const safeName = Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
+      cb(null, safeName);
+    }
   },
 });
 

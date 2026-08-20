@@ -97,7 +97,7 @@ export default function Settings() {
                 previewUrl
                   ? previewUrl
                   : user!.profilePic
-                  ? `${IMAGES_URL}/${user!.profilePic}`
+                  ? `${IMAGES_URL}/${user!.profilePic}?v=${user!.updatedAt}`
                   : `${IMAGES_URL}/${DEFAULT_AVATAR}`
               }
               alt=""

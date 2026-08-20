@@ -42,56 +42,50 @@ export default function Post({ post }: PostProps) {
   };
 
   return (
-    <div className="post">
-      {post.photo && (
-        <img className="postImg" src={`${IMAGES_URL}/${post.photo}`} alt={post.title} />
-      )}
-      <div className="postInfo">
-        <div className="postCats">
-          {post.categories?.map((c: string, i: number) => {
-            const catName = typeof c === "string" ? c : typeof c === "object" && c !== null && "name" in c ? (c as { name: string }).name : String(c);
-            const catKey = catName.toLowerCase().replace(/\s+/g, "_");
-            return (
-              <Link key={i} to={`/?cat=${catName}`} className="link">
-                <span className="postCat" data-cat={CAT_COLORS[catKey] || ""}>
+    <Link to={`/post/${post._id}`} className="link">
+      <div className="post">
+        {(post.banner || post.photo) && (
+          <img className="postImg" src={`${IMAGES_URL}/${post.banner || post.photo}`} alt={post.title} />
+        )}
+        <div className="postInfo">
+          <div className="postCats">
+            {post.categories?.map((c: string, i: number) => {
+              const catName = typeof c === "string" ? c : typeof c === "object" && c !== null && "name" in c ? (c as { name: string }).name : String(c);
+              const catKey = catName.toLowerCase().replace(/\s+/g, "_");
+              return (
+                <span key={i} className="postCat" data-cat={CAT_COLORS[catKey] || ""}>
                   {catName}
                 </span>
-              </Link>
-            );
-          })}
-          {post.tags?.slice(0, 3).map((tag: string, i: number) => (
-            <Link key={`tag-${i}`} to={`/?tag=${tag}`} className="link">
-              <span className="postTag">#{tag}</span>
-            </Link>
-          ))}
-        </div>
-        <Link to={`/post/${post._id}`} className="link">
+              );
+            })}
+            {post.tags?.slice(0, 3).map((tag: string, i: number) => (
+              <span key={`tag-${i}`} className="postTag">#{tag}</span>
+            ))}
+          </div>
           <span className="postTitle">{post.title}</span>
-        </Link>
-        <div className="postMeta">
-          <Link to={`/profile/${post.username}`} className="link">
+          <div className="postMeta">
             <span className="postAuthor">{post.username}</span>
-          </Link>
-          <span className="postDate">
-            {new Date(post.createdAt).toDateString()}
-          </span>
+            <span className="postDate">
+              {new Date(post.createdAt).toDateString()}
+            </span>
+          </div>
+        </div>
+        <p className="postDesc">{post.desc}</p>
+        <div className="postFooter">
+          <div className="postStats">
+            <span><i className="fas fa-heart"></i> {post.likes?.length || 0}</span>
+            <span><i className="fas fa-comment"></i> {post.comments?.length || 0}</span>
+            <span><i className="fas fa-eye"></i> {post.views || 0}</span>
+          </div>
+          {token && (
+            <i
+              className={`fas fa-bookmark postBookmark ${bookmarked ? "active" : ""} ${bookmarkError ? "error" : ""}`}
+              onClick={handleBookmark}
+              title={bookmarkError ? "Failed to update bookmark" : ""}
+            ></i>
+          )}
         </div>
       </div>
-      <p className="postDesc">{post.desc}</p>
-      <div className="postFooter">
-        <div className="postStats">
-          <span><i className="fas fa-heart"></i> {post.likes?.length || 0}</span>
-          <span><i className="fas fa-comment"></i> {post.comments?.length || 0}</span>
-          <span><i className="fas fa-eye"></i> {post.views || 0}</span>
-        </div>
-        {token && (
-          <i
-            className={`fas fa-bookmark postBookmark ${bookmarked ? "active" : ""} ${bookmarkError ? "error" : ""}`}
-            onClick={handleBookmark}
-            title={bookmarkError ? "Failed to update bookmark" : ""}
-          ></i>
-        )}
-      </div>
-    </div>
+    </Link>
   );
 }

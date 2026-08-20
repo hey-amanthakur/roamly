@@ -43,6 +43,7 @@ export interface IPost {
   desc: string;
   photos: string[];
   photo: string;
+  banner: string;
   username: string;
   userId: Types.ObjectId;
   categories: string[];

@@ -102,7 +102,7 @@ export default function Profile() {
             className="profilePic"
             src={
               profileUser.profilePic
-                ? `${IMAGES_URL}/${profileUser.profilePic}`
+                ? `${IMAGES_URL}/${profileUser.profilePic}?v=${profileUser.updatedAt}`
                 : `${IMAGES_URL}/${DEFAULT_AVATAR}`
             }
             alt={profileUser.username}

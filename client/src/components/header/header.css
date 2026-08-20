@@ -143,8 +143,9 @@
   flex-wrap: wrap;
 }
 .heroSwitchBtn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
   padding: 0.55rem 1.1rem;
   border: 2px solid var(--color-line);
@@ -156,6 +157,8 @@
   font-weight: 600;
   cursor: pointer;
   transition: all var(--ease-smooth);
+  text-align: center;
+  line-height: 1;
 }
 .heroSwitchBtn:hover {
   border-color: var(--color-ink);

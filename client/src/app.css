@@ -429,6 +429,7 @@ a {
 .categoryChip {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 6px 16px;
   border-radius: 999px;
@@ -441,6 +442,7 @@ a {
   color: rgb(var(--color-muted));
   transition: all 0.2s var(--ease-smooth);
   white-space: nowrap;
+  line-height: 1;
 }
 
 .categoryChip:hover {
@@ -731,6 +733,14 @@ a {
   flex-direction: column;
 }
 
+.singlePostBanner {
+  width: 100%;
+  height: 350px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-bottom: 16px;
+}
+
 .singlePostImg {
   width: 100%;
   height: 400px;
@@ -928,6 +938,115 @@ a {
 .singlePostButton:active {
   transform: translate(0, 0);
   box-shadow: none;
+}
+
+.editActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.singlePostCancelBtn {
+  width: fit-content;
+  border: 1px solid rgb(var(--color-line));
+  background: transparent;
+  padding: 10px 24px;
+  color: rgb(var(--color-ink));
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 20px;
+  transition: background 0.15s;
+}
+.singlePostCancelBtn:hover {
+  background: rgb(var(--color-muted-bg));
+}
+
+.editMediaSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid rgb(var(--color-line));
+  border-radius: 12px;
+  background: rgb(var(--color-muted-bg));
+}
+.editMediaSection label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: rgb(var(--color-muted));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.editBannerPreview,
+.editPhotosPreview {
+  position: relative;
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.editBannerPreview img {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.editPhotosPreview img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.editMediaRemove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.editMediaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px dashed rgb(var(--color-line));
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: rgb(var(--color-muted));
+  background: rgb(var(--color-canvas));
+  transition: all 0.15s;
+  margin-top: 8px;
+  width: fit-content;
+}
+.editMediaBtn:hover {
+  border-color: var(--primary-400);
+  color: var(--primary-400);
+}
+
+.dashboardEditLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--secondary-400);
+  text-decoration: none;
+}
+.dashboardEditLink:hover {
+  color: var(--primary-400);
 }
 
 /* Comments */
@@ -1177,6 +1296,70 @@ a {
   object-fit: cover;
 }
 
+.writeBannerPreview {
+  position: relative;
+  margin-left: 150px;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+.writeBannerPreviewImg {
+  width: 400px;
+  height: 200px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid var(--primary-400);
+}
+.writeBannerRemove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: background 0.2s;
+}
+.writeBannerRemove:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.writeBannerField {
+  margin-left: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.writeBannerLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px dashed rgb(var(--color-line));
+  border-radius: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgb(var(--color-muted));
+  cursor: pointer;
+  transition: all 0.2s;
+  width: fit-content;
+}
+.writeBannerLabel:hover {
+  border-color: var(--primary-400);
+  color: var(--primary-400);
+}
+.writeBannerLabel i {
+  font-size: 14px;
+}
+
 .writeForm { position: relative; }
 
 .writeFormGroup {
@@ -1334,6 +1517,8 @@ a {
 
 @media (max-width: 768px) {
   .writeFormGroup, .writePreview { margin-left: 20px; }
+  .writeBannerField, .writeBannerPreview { margin-left: 20px; }
+  .writeBannerPreviewImg { width: 100%; height: 160px; }
   .writeMeta { margin: 20px; }
   .writeInput { width: 90vw; font-size: 24px; }
   .writeText { width: 90vw; }

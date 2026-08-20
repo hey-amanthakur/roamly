@@ -76,10 +76,12 @@ export default function Header() {
 
           <div className="heroStats">
             {HERO_STATS.map((stat: { value: string; label: string }, i: number) => (
-              <div key={stat.label} className="heroStat">
+              <div key={stat.label} style={{ display: "contents" }}>
                 {i > 0 && <div className="heroStatDivider"></div>}
-                <span className="heroStatNum">{stat.value}</span>
-                <span className="heroStatLabel">{stat.label}</span>
+                <div className="heroStat">
+                  <span className="heroStatNum">{stat.value}</span>
+                  <span className="heroStatLabel">{stat.label}</span>
+                </div>
               </div>
             ))}
           </div>

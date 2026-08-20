@@ -87,6 +87,7 @@ export default function Dashboard() {
                 <th>Likes</th>
                 <th>Comments</th>
                 <th>Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -104,6 +105,11 @@ export default function Dashboard() {
                   <td>{p.likes}</td>
                   <td>{p.comments}</td>
                   <td>{new Date(p.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <Link to={`/post/${p.postId}`} className="link dashboardEditLink">
+                      <i className="fas fa-edit"></i> Edit
+                    </Link>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -53,7 +53,7 @@ export const SOCIAL_LINKS = {
   twitter: "https://twitter.com/amanthakur",
   linkedin: "https://linkedin.com/in/amanthakur",
   instagram: "https://instagram.com/amanthakur",
-  avatar: "https://avatars.githubusercontent.com/u/amanthakur",
+  avatar: "https://avatars.githubusercontent.com/u/54764701?s=400&u=df5e2186288f8de8b92b5e7781c2e4389a65d7e3&v=4",
 } as const;
 
 export const AUTHOR = {

@@ -26,6 +26,7 @@ export const ALLOWED_POST_FIELDS = [
   "desc",
   "photos",
   "photo",
+  "banner",
   "categories",
   "tags",
   "location",

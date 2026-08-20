@@ -15,6 +15,7 @@ interface NewPost {
   categories: string[];
   location: Location;
   photo?: string;
+  banner?: string;
   photos?: string[];
 }
 
@@ -22,6 +23,8 @@ export default function Write() {
   const [title, setTitle] = useState<string>("");
   const [desc, setDesc] = useState<string>("");
   const [files, setFiles] = useState<File[]>([]);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string>("");
   const [tags, setTags] = useState<string>("");
   const [categories, setCategories] = useState<string>("");
   const [location, setLocation] = useState<Location>({} as Location);
@@ -38,6 +41,16 @@ export default function Write() {
       urls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [files]);
+
+  useEffect(() => {
+    if (bannerFile) {
+      const url = URL.createObjectURL(bannerFile);
+      setBannerPreview(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setBannerPreview("");
+    }
+  }, [bannerFile]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = Array.from(e.target.files || []);
@@ -65,6 +78,18 @@ export default function Write() {
       }
     }
     return filenames;
+  };
+
+  const uploadBanner = async (): Promise<string | undefined> => {
+    if (!bannerFile) return undefined;
+    const data = new FormData();
+    const filename = Date.now() + "-banner-" + bannerFile.name;
+    data.append("name", filename);
+    data.append("file", bannerFile);
+    await axios.post(`${API_URL}/upload`, data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return filename;
   };
 
   const handleSubmit = async (e: React.FormEvent | React.MouseEvent, status: string = "published") => {
@@ -103,6 +128,20 @@ export default function Write() {
       }
     }
 
+    if (bannerFile) {
+      try {
+        const bannerFilename = await uploadBanner();
+        if (bannerFilename) {
+          newPost.banner = bannerFilename;
+        }
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Failed to upload banner";
+        setError(message);
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       const res = await axios.post<Post>(`${API_URL}/posts`, newPost, {
         headers: { Authorization: `Bearer ${token}` },
@@ -128,6 +167,14 @@ export default function Write() {
           ))}
         </div>
       )}
+      {bannerPreview && (
+        <div className="writeBannerPreview">
+          <img className="writeBannerPreviewImg" src={bannerPreview} alt="Banner preview" />
+          <button className="writeBannerRemove" type="button" onClick={() => setBannerFile(null)}>
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+      )}
       <form className="writeForm" onSubmit={handleSubmit}>
         <div className="writeFormGroup">
           <label htmlFor="fileInput">
@@ -149,6 +196,25 @@ export default function Write() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+        </div>
+
+        <div className="writeFormGroup writeBannerField">
+          <label htmlFor="bannerInput" className="writeBannerLabel">
+            <i className="fas fa-image"></i> Banner Image
+          </label>
+          <input
+            type="file"
+            id="bannerInput"
+            style={{ display: "none" }}
+            accept="image/*"
+            onChange={(e) => {
+              const files = e.target.files;
+              if (files && files.length > 0) {
+                setBannerFile(files[0]);
+              }
+            }}
+          />
+          <span className="writeMetaHint">Optional cover image for your post</span>
         </div>
 
         <LocationInput location={location} onChange={setLocation} />

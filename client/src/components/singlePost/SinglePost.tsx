@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, KeyboardEvent } from "react";
+import { useContext, useEffect, useState, useCallback, KeyboardEvent } from "react";
 import axios from "axios";
 import { useLocation, useHistory, Link } from "react-router-dom";
 import { Context } from "../../context/Context";
@@ -6,7 +6,7 @@ import { API_URL, IMAGES_URL } from "../../config";
 import ShareButton from "../shareButton/ShareButton";
 import ReportModal from "../reportModal/ReportModal";
 import PhotoGallery from "../photoGallery/PhotoGallery";
-import { COLORS } from "../../constants";
+import { COLORS, MAX_UPLOAD_FILES } from "../../constants";
 import { Post, Comment, ContextValue } from "../../types";
 
 export default function SinglePost() {
@@ -22,6 +22,10 @@ export default function SinglePost() {
   const [error, setError] = useState<string>("");
   const [relatedPosts, setRelatedPosts] = useState<Post[]>([]);
   const [showReport, setShowReport] = useState<boolean>(false);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string>("");
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newPreviewUrls, setNewPreviewUrls] = useState<string[]>([]);
   const history = useHistory();
 
   useEffect(() => {
@@ -64,6 +68,22 @@ export default function SinglePost() {
     }
   }, [post._id]);
 
+  useEffect(() => {
+    if (bannerFile) {
+      const url = URL.createObjectURL(bannerFile);
+      setBannerPreview(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setBannerPreview("");
+    }
+  }, [bannerFile]);
+
+  useEffect(() => {
+    const urls = newFiles.map((f) => URL.createObjectURL(f));
+    setNewPreviewUrls(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [newFiles]);
+
   const handleDelete = async (): Promise<void> => {
     try {
       await axios.delete(`${API_URL}/posts/${post._id}`, {
@@ -77,13 +97,47 @@ export default function SinglePost() {
 
   const handleUpdate = async (): Promise<void> => {
     try {
+      const updates: Record<string, any> = { title, desc };
+
+      if (bannerFile) {
+        const data = new FormData();
+        const filename = Date.now() + "-banner-" + bannerFile.name;
+        data.append("name", filename);
+        data.append("file", bannerFile);
+        await axios.post(`${API_URL}/upload`, data, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        updates.banner = filename;
+      }
+
+      if (newFiles.length > 0) {
+        const filenames: string[] = [];
+        for (const file of newFiles) {
+          const data = new FormData();
+          const filename = Date.now() + "-" + file.name;
+          data.append("name", filename);
+          data.append("file", file);
+          await axios.post(`${API_URL}/upload`, data, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          filenames.push(filename);
+        }
+        if (filenames.length === 1) {
+          updates.photo = filenames[0];
+        } else {
+          updates.photos = filenames;
+        }
+      }
+
       const res = await axios.put<Post>(
         `${API_URL}/posts/${post._id}`,
-        { title, desc },
+        updates,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setPost(res.data);
       setUpdateMode(false);
+      setBannerFile(null);
+      setNewFiles([]);
     } catch (err) {
       setError("Failed to update post");
     }
@@ -181,6 +235,10 @@ export default function SinglePost() {
   return (
     <div className="singlePost">
       <div className="singlePostWrapper">
+        {post.banner && (
+          <img src={`${IMAGES_URL}/${post.banner}`} alt="" className="singlePostBanner" />
+        )}
+
         {allPhotos.length > 0 && (
           <>
             {allPhotos.length === 1 ? (
@@ -279,6 +337,73 @@ export default function SinglePost() {
           <span>{post.views || 0} views</span>
         </div>
 
+        {updateMode && (
+          <div className="editMediaSection">
+            <div className="editBannerSection">
+              <label>Banner Image</label>
+              {(bannerPreview || post.banner) && (
+                <div className="editBannerPreview">
+                  <img src={bannerPreview || `${IMAGES_URL}/${post.banner}`} alt="" />
+                  {bannerPreview && (
+                    <button type="button" className="editMediaRemove" onClick={() => setBannerFile(null)}>
+                      <i className="fas fa-times"></i>
+                    </button>
+                  )}
+                </div>
+              )}
+              <label htmlFor="editBannerInput" className="editMediaBtn">
+                <i className="fas fa-image"></i> {post.banner ? "Change Banner" : "Add Banner"}
+              </label>
+              <input
+                type="file"
+                id="editBannerInput"
+                style={{ display: "none" }}
+                accept="image/*"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files && files[0]) setBannerFile(files[0]);
+                }}
+              />
+            </div>
+
+            <div className="editPhotosSection">
+              <label>Photos</label>
+              {newPreviewUrls.length > 0 && (
+                <div className="editPhotosPreview">
+                  {newPreviewUrls.map((url, i) => (
+                    <img key={i} src={url} alt="" />
+                  ))}
+                </div>
+              )}
+              {newFiles.length === 0 && allPhotos.length > 0 && (
+                <div className="editPhotosPreview">
+                  {allPhotos.map((url, i) => (
+                    <img key={i} src={url} alt="" />
+                  ))}
+                </div>
+              )}
+              <label htmlFor="editPhotosInput" className="editMediaBtn">
+                <i className="fas fa-plus"></i> {allPhotos.length > 0 ? "Replace Photos" : "Add Photos"}
+              </label>
+              <input
+                type="file"
+                id="editPhotosInput"
+                style={{ display: "none" }}
+                accept="image/*"
+                multiple
+                onChange={(e) => {
+                  const selected = Array.from(e.target.files || []);
+                  if (selected.length > MAX_UPLOAD_FILES) {
+                    setError("Maximum 5 images allowed");
+                    return;
+                  }
+                  setNewFiles(selected);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         {updateMode ? (
           <textarea
             className="singlePostDescInput"
@@ -289,9 +414,20 @@ export default function SinglePost() {
           <p className="singlePostDesc">{desc}</p>
         )}
         {updateMode && (
-          <button className="singlePostButton" onClick={handleUpdate}>
-            Update
-          </button>
+          <div className="editActions">
+            <button className="singlePostButton" onClick={handleUpdate}>
+              Update
+            </button>
+            <button className="singlePostCancelBtn" onClick={() => {
+              setUpdateMode(false);
+              setBannerFile(null);
+              setNewFiles([]);
+              setTitle(post.title);
+              setDesc(post.desc);
+            }}>
+              Cancel
+            </button>
+          </div>
         )}
 
         <div className="singlePostComments">
@@ -331,8 +467,8 @@ export default function SinglePost() {
             <div className="relatedPostsGrid">
               {relatedPosts.map((rp: Post) => (
                 <Link key={rp._id} to={`/post/${rp._id}`} className="relatedPostCard">
-                  {rp.photo && (
-                    <img src={`${IMAGES_URL}/${rp.photo}`} alt={rp.title} />
+                  {(rp.banner || rp.photo) && (
+                    <img src={`${IMAGES_URL}/${rp.banner || rp.photo}`} alt={rp.title} />
                   )}
                   <div>
                     <span className="relatedPostTitle">{rp.title}</span>
