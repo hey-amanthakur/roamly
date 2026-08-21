@@ -42,6 +42,7 @@ export const PAGE_LIMITS = {
   DEFAULT: 10,
   PROFILE: 5,
   DRAFTS: 10,
+  DASHBOARD: 10,
 } as const;
 
 export const MAX_UPLOAD_FILES = 5;
