@@ -19,6 +19,10 @@ function applyHeaders(res: Response, result: { remaining: number; capacity: numb
 }
 
 export function globalRateLimit(req: Request, res: Response, next: NextFunction): void {
+  if (req.method === "OPTIONS") {
+    next();
+    return;
+  }
   const path = req.path;
   const isAuth = path === "/api/auth/register" || path === "/api/auth/login";
   const isWrite = req.method !== "GET";

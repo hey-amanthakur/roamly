@@ -93,11 +93,12 @@ mongoRetry
     process.exit(1);
   });
 
-// Global rate limiting (throttle-box)
-app.use(globalRateLimit);
-
+// CORS must run before rate limiting so rejected requests still carry CORS headers
 app.use(cors());
 app.use(express.json());
+
+// Global rate limiting (throttle-box)
+app.use(globalRateLimit);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello, server is up and running...");
