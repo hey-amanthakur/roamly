@@ -5,6 +5,7 @@ import multer from "multer";
 import path from "path";
 import { Readable } from "stream";
 import cors from "cors";
+import helmet from "helmet";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import { RetryEngine, exponential } from "@hey-amanthakur/retry-box";
@@ -24,8 +25,21 @@ import { globalRateLimit } from "./middleware/rateLimit";
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  console.warn(
+    "WARNING: JWT_SECRET is not set — falling back to an insecure default. Set it before deploying."
+  );
+}
+
 const app = express();
 const port = process.env.PORT || 5001;
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 // Swagger configuration
 const swaggerOptions: swaggerJsdoc.Options = {
