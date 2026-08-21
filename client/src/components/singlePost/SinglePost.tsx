@@ -36,8 +36,8 @@ export default function SinglePost() {
         setPost(res.data);
         setTitle(res.data.title);
         setDesc(res.data.desc);
-      } catch (err: any) {
-        if (err.name !== "CanceledError") {
+      } catch (err) {
+        if (!axios.isCancel(err)) {
           setError("Failed to load post");
         }
       } finally {
@@ -55,8 +55,8 @@ export default function SinglePost() {
         try {
           const res = await axios.get<Post[]>(`${API_URL}/posts/${post._id}/related`, { signal: controller.signal });
           setRelatedPosts(res.data);
-        } catch (err: any) {
-          if (err.name !== "CanceledError") {
+        } catch (err) {
+          if (!axios.isCancel(err)) {
             // ignore
           }
         }
@@ -85,7 +85,10 @@ export default function SinglePost() {
 
   const handleUpdate = async (): Promise<void> => {
     try {
-      const updates: Record<string, any> = { title, desc };
+      const updates: { title: string; desc: string; photo?: string; photos?: string[] } = {
+        title,
+        desc,
+      };
 
       if (newFiles.length > 0) {
         const filenames: string[] = [];

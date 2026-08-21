@@ -32,8 +32,8 @@ export default function Dashboard() {
         setStats(res.data.stats);
         setPosts(res.data.posts);
         setPages(res.data.pages);
-      } catch (err: any) {
-        if (err.name !== "CanceledError") {
+      } catch (err) {
+        if (!axios.isCancel(err)) {
           console.error("Failed to load dashboard");
         }
       } finally {

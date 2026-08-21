@@ -43,8 +43,8 @@ export default function Profile() {
         setPosts(postsRes.data.posts);
         setPages(postsRes.data.pages);
         setTotalPosts(postsRes.data.total);
-      } catch (err: any) {
-        if (err.name !== "CanceledError") {
+      } catch (err) {
+        if (!axios.isCancel(err)) {
           console.error("Failed to load profile");
         }
       } finally {

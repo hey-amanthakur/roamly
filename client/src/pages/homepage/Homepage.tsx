@@ -57,8 +57,8 @@ export default function Homepage() {
         setPosts(res.data.posts);
         setPages(res.data.pages);
         setTotal(res.data.total);
-      } catch (err: any) {
-        if (err.name !== "CanceledError") {
+      } catch (err) {
+        if (!axios.isCancel(err)) {
           setError("Failed to load posts");
         }
       } finally {
