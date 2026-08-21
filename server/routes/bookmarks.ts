@@ -46,7 +46,7 @@ router.put("/posts/:id", verifyToken, async (req: AuthRequest, res: Response): P
       `bookmark:${req.user!.id}:${req.params.id}`,
       async () => {
         const addResult = await User.findOneAndUpdate(
-          { _id: req.user!.id, bookmarks: { $ne: req.params.id as any } },
+          { _id: req.user!.id, bookmarks: { $ne: req.params.id } },
           { $push: { bookmarks: req.params.id } },
           { new: true }
         );

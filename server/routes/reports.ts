@@ -134,12 +134,13 @@ router.post("/", verifyToken, async (req: AuthRequest, res: Response): Promise<v
     }
 
     res.status(201).json({ message: "Report submitted" });
-  } catch (err: any) {
-    if (err.message === "TARGET_NOT_FOUND") {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (message === "TARGET_NOT_FOUND") {
       res.status(404).json({ message: "Target not found" });
       return;
     }
-    if (err.message === "ALREADY_REPORTED") {
+    if (message === "ALREADY_REPORTED") {
       res.status(400).json({ message: "You have already reported this" });
       return;
     }

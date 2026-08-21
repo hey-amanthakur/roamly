@@ -1,14 +1,14 @@
 import { Router, Response } from "express";
 import User from "../models/User";
 import Post from "../models/Post";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { verifyToken } from "../middleware/auth";
 import {
   BCRYPT_SALT_ROUNDS,
   PASSWORD_MIN_LENGTH,
   ALLOWED_USER_FIELDS,
 } from "../constants";
-import { AuthRequest } from "../types";
+import { IUser, AuthRequest } from "../types";
 import { sanitizeText } from "../utils/sanitize";
 import { lock } from "../middleware/lock";
 
@@ -59,7 +59,9 @@ router.put("/:id", verifyToken, async (req: AuthRequest, res: Response): Promise
   }
 
   try {
-    const updates: Record<string, any> = {};
+    const updates: Partial<Pick<IUser, (typeof ALLOWED_USER_FIELDS)[number]>> & {
+      password?: string;
+    } = {};
     for (const field of ALLOWED_USER_FIELDS) {
       if (req.body[field] !== undefined) {
         updates[field] = typeof req.body[field] === "string"
@@ -97,8 +99,8 @@ router.put("/:id", verifyToken, async (req: AuthRequest, res: Response): Promise
     }
 
     res.status(200).json(updatedUser);
-  } catch (err: any) {
-    if (err.code === 11000) {
+  } catch (err) {
+    if ((err as { code?: number }).code === 11000) {
       res.status(400).json({ message: "Username or email already taken" });
       return;
     }
@@ -236,12 +238,13 @@ router.put("/:id/follow", verifyToken, async (req: AuthRequest, res: Response): 
     );
 
     res.status(200).json({ message: "User has been followed" });
-  } catch (err: any) {
-    if (err.message === "USER_NOT_FOUND") {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (message === "USER_NOT_FOUND") {
       res.status(404).json({ message: "User not found" });
       return;
     }
-    if (err.message === "ALREADY_FOLLOWING") {
+    if (message === "ALREADY_FOLLOWING") {
       res.status(400).json({ message: "Already following this user" });
       return;
     }
@@ -299,12 +302,13 @@ router.put("/:id/unfollow", verifyToken, async (req: AuthRequest, res: Response)
     );
 
     res.status(200).json({ message: "User has been unfollowed" });
-  } catch (err: any) {
-    if (err.message === "USER_NOT_FOUND") {
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (message === "USER_NOT_FOUND") {
       res.status(404).json({ message: "User not found" });
       return;
     }
-    if (err.message === "NOT_FOLLOWING") {
+    if (message === "NOT_FOLLOWING") {
       res.status(400).json({ message: "Not following this user" });
       return;
     }

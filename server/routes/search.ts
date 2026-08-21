@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import Post from "../models/Post";
 import { PAGE_LIMITS } from "../constants";
+import { FilterQuery } from "mongoose";
 import { PaginatedResponse, IPostDocument } from "../types";
 
 const router = Router();
@@ -52,7 +53,7 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
   const searchRegex = new RegExp(escaped, "i");
 
   try {
-    const filter: Record<string, any> = {
+    const filter: FilterQuery<IPostDocument> = {
       status: "published",
       $or: [
         { title: searchRegex },

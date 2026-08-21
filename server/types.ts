@@ -51,7 +51,7 @@ export interface IPost {
   status: "draft" | "published";
   likes: Types.ObjectId[];
   bookmarks: Types.ObjectId[];
-  comments: ICommentDocument[];
+  comments: Types.DocumentArray<ICommentDocument>;
   views: number;
   createdAt: Date;
   updatedAt: Date;

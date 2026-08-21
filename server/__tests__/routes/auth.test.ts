@@ -17,7 +17,7 @@ jest.mock("../../models/User", () => {
 });
 
 jest.mock("../../models/Post", () => ({}));
-jest.mock("bcrypt", () => ({
+jest.mock("bcryptjs", () => ({
   genSalt: jest.fn().mockResolvedValue("$2b$10$"),
   hash: jest.fn().mockResolvedValue("$2b$10$hashedpassword"),
   compare: jest.fn(),
@@ -89,7 +89,7 @@ describe("Auth Routes", () => {
     });
 
     it("should return 400 for wrong password", async () => {
-      const bcrypt = require("bcrypt") as any;
+      const bcrypt = require("bcryptjs") as { compare: jest.Mock };
       bcrypt.compare.mockResolvedValue(false);
 
       mockFindOne.mockResolvedValue({

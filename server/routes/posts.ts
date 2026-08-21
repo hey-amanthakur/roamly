@@ -1,4 +1,5 @@
 import { Router, Response } from "express";
+import { FilterQuery, PipelineStage, Types } from "mongoose";
 import Post from "../models/Post";
 import User from "../models/User";
 import { verifyToken, optionalToken } from "../middleware/auth";
@@ -8,7 +9,7 @@ import {
   TRENDING_WINDOW_MS,
   ALLOWED_POST_FIELDS,
 } from "../constants";
-import { AuthRequest, PaginatedResponse, IPostDocument } from "../types";
+import { AuthRequest, PaginatedResponse, IPostDocument, IPost } from "../types";
 import { sanitizeText } from "../utils/sanitize";
 import { lock } from "../middleware/lock";
 
@@ -94,8 +95,8 @@ router.post("/", verifyToken, async (req: AuthRequest, res: Response): Promise<v
   try {
     const savedPost = await newPost.save();
     res.status(201).json(savedPost);
-  } catch (err: any) {
-    if (err.code === 11000) {
+  } catch (err) {
+    if ((err as { code?: number }).code === 11000) {
       res.status(400).json({ message: "A post with this title already exists" });
       return;
     }
@@ -150,7 +151,7 @@ router.put("/:id", verifyToken, async (req: AuthRequest, res: Response): Promise
       return;
     }
 
-    const updates: Record<string, any> = {};
+    const updates: Partial<Pick<IPost, (typeof ALLOWED_POST_FIELDS)[number]>> = {};
     for (const field of ALLOWED_POST_FIELDS) {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
@@ -164,8 +165,8 @@ router.put("/:id", verifyToken, async (req: AuthRequest, res: Response): Promise
     );
 
     res.status(200).json(updatedPost);
-  } catch (err: any) {
-    if (err.code === 11000) {
+  } catch (err) {
+    if ((err as { code?: number }).code === 11000) {
       res.status(400).json({ message: "A post with this title already exists" });
       return;
     }
@@ -247,15 +248,14 @@ router.get("/:id", optionalToken, async (req: AuthRequest, res: Response): Promi
       { new: true }
     );
 
-    const postObj = updatedPost!.toObject();
-    (postObj as any).isLiked = req.user
-      ? postObj.likes.some((id: any) => id.toString() === req.user!.id)
+    const isLiked = req.user
+      ? updatedPost!.likes.some((id: Types.ObjectId) => id.toString() === req.user!.id)
       : false;
-    (postObj as any).isBookmarked = req.user
-      ? postObj.bookmarks.some((id: any) => id.toString() === req.user!.id)
+    const isBookmarked = req.user
+      ? updatedPost!.bookmarks.some((id: Types.ObjectId) => id.toString() === req.user!.id)
       : false;
 
-    res.status(200).json(postObj);
+    res.status(200).json({ ...updatedPost!.toObject(), isLiked, isBookmarked });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
@@ -320,7 +320,7 @@ router.get("/", optionalToken, async (req: AuthRequest, res: Response): Promise<
     const isDraftRequest = (queryStatus as string) === "draft";
     const status = isDraftRequest && req.user ? "draft" : "published";
 
-    let filter: Record<string, any> = { status };
+    let filter: FilterQuery<IPostDocument> = { status };
     if (isDraftRequest && req.user) {
       filter.userId = req.user.id;
     } else if (isDraftRequest && !req.user) {
@@ -347,7 +347,7 @@ router.get("/", optionalToken, async (req: AuthRequest, res: Response): Promise<
 
     const isMostDiscussed = sort === "most_discussed";
 
-    const pipeline: any[] = [
+    const pipeline: PipelineStage[] = [
       { $match: filter },
       ...(isMostDiscussed
         ? [{ $addFields: { commentCount: { $size: "$comments" } } }]
@@ -357,7 +357,7 @@ router.get("/", optionalToken, async (req: AuthRequest, res: Response): Promise<
       { $limit: limit },
     ];
 
-    const countPipeline: any[] = [{ $match: filter }, { $count: "total" }];
+    const countPipeline: PipelineStage[] = [{ $match: filter }, { $count: "total" }];
 
     const [posts, countResult] = await Promise.all([
       Post.aggregate(pipeline),
@@ -413,7 +413,7 @@ router.get("/feed/for-you", verifyToken, async (req: AuthRequest, res: Response)
     const followedIds = currentUser?.followings || [];
     const preferredCategories = currentUser?.preferences?.categories || [];
 
-    const feedFilter: Record<string, any> = {
+    const feedFilter: FilterQuery<IPostDocument> = {
       status: "published",
       $or: [
         { userId: { $in: followedIds } },
@@ -463,7 +463,7 @@ router.get("/:id/related", async (req, res: Response): Promise<void> => {
       return;
     }
 
-    const relatedFilter: Record<string, any> = {
+    const relatedFilter: FilterQuery<IPostDocument> = {
       _id: { $ne: post._id },
       status: "published",
       $or: [
@@ -515,7 +515,7 @@ router.put("/:id/like", verifyToken, async (req: AuthRequest, res: Response): Pr
       `post:${req.params.id}`,
       async () => {
         return Post.findOneAndUpdate(
-          { _id: req.params.id, likes: { $ne: req.user!.id as any } },
+          { _id: req.params.id, likes: { $ne: new Types.ObjectId(req.user!.id) } },
           { $push: { likes: req.user!.id } },
           { new: true }
         );
@@ -594,11 +594,11 @@ router.post("/:id/comments", verifyToken, async (req: AuthRequest, res: Response
 
     const comment = {
       username: req.user!.username,
-      userId: req.user!.id as any,
+      userId: new Types.ObjectId(req.user!.id),
       text: sanitizeText(text.trim()),
     };
 
-    post.comments.push(comment as any);
+    post.comments.push(comment);
     await post.save();
 
     res.status(200).json(post.comments[post.comments.length - 1]);
@@ -645,7 +645,7 @@ router.delete(
         return;
       }
 
-      const comment = (post.comments as any).id(req.params.commentId);
+      const comment = post.comments.id(String(req.params.commentId));
       if (!comment) {
         res.status(404).json({ message: "Comment not found" });
         return;
@@ -656,7 +656,7 @@ router.delete(
         return;
       }
 
-      (post.comments as any).pull(req.params.commentId);
+      post.comments.pull(String(req.params.commentId));
       await post.save();
 
       res.status(200).json({ message: "Comment deleted" });

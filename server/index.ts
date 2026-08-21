@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response, ErrorRequestHandler } from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import multer from "multer";
@@ -96,14 +96,13 @@ const mongoRetry = new RetryEngine({
 });
 
 mongoRetry
-  .run(() =>
-    (mongoose as any).connect(
-      process.env.MONGO_URL || "mongodb://localhost:27017/roamly"
-    )
-  )
+  .run(() => mongoose.connect(process.env.MONGO_URL || "mongodb://localhost:27017/roamly"))
   .then(() => console.log("Connected to MongoDB"))
-  .catch((err: any) => {
-    console.error("Failed to connect to MongoDB after retries:", err.message);
+  .catch((err: unknown) => {
+    console.error(
+      "Failed to connect to MongoDB after retries:",
+      err instanceof Error ? err.message : err
+    );
     process.exit(1);
   });
 
@@ -128,7 +127,11 @@ mongoose.connection.on("open", () => {
 // File upload configuration (memory storage — files buffered then written to GridFS)
 const upload = multer({
   storage: multer.memoryStorage(),
-  fileFilter: (req: Request, file: Express.Multer.File, cb: any): void => {
+  fileFilter: (
+    _req: Request,
+    file: Express.Multer.File,
+    cb: multer.FileFilterCallback
+  ): void => {
     const extOk = FILE_UPLOAD.ALLOWED_EXTENSIONS.test(
       path.extname(file.originalname).toLowerCase()
     );
@@ -260,17 +263,19 @@ app.use("/api/newsletter", newsletterRoute);
 app.use("/api/analytics", analyticsRoute);
 
 // Error handling middleware
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     res.status(400).json({ message: `Upload error: ${err.message}` });
     return;
   }
-  if (err.message) {
+  if (err instanceof Error && err.message) {
     res.status(400).json({ message: err.message });
     return;
   }
   res.status(500).json({ message: "Internal server error" });
-});
+  next();
+};
+app.use(errorHandler);
 
 export { app };
 

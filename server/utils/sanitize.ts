@@ -7,14 +7,15 @@ export function sanitizeText(text: string): string {
     .replace(/'/g, "&#x27;");
 }
 
-export function sanitizeObject<T extends Record<string, any>>(
+export function sanitizeObject<T extends object>(
   obj: T,
   fields: string[]
 ): T {
-  const sanitized: Record<string, any> = { ...obj };
+  const sanitized = { ...obj } as Record<string, unknown>;
   for (const field of fields) {
-    if (typeof sanitized[field] === "string") {
-      sanitized[field] = sanitizeText(sanitized[field]);
+    const value = sanitized[field];
+    if (typeof value === "string") {
+      sanitized[field] = sanitizeText(value);
     }
   }
   return sanitized as T;

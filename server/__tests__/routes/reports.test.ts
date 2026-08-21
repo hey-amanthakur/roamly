@@ -28,7 +28,7 @@ app.use("/api/reports", reportsRouter);
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-const generateToken = (payload: any): string => jwt.sign(payload, JWT_SECRET);
+const generateToken = (payload: Record<string, unknown>): string => jwt.sign(payload, JWT_SECRET);
 
 describe("Reports Routes", () => {
   beforeEach(() => {

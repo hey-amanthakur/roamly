@@ -36,8 +36,8 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
     const newCat = new Category({ name: name.trim() });
     const savedCat = await newCat.save();
     res.status(201).json(savedCat);
-  } catch (err: any) {
-    if (err.code === 11000) {
+  } catch (err) {
+    if ((err as { code?: number }).code === 11000) {
       res.status(400).json({ message: "Category already exists" });
       return;
     }
