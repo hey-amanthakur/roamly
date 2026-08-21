@@ -126,7 +126,7 @@ export default function Register() {
       <div className="authVisual">
         <div className="authVisualContent">
           <div className="authVisualDot"></div>
-          <h2>wanderlog</h2>
+          <h2>roamly</h2>
           <p>Share your travel stories with the world</p>
         </div>
       </div>

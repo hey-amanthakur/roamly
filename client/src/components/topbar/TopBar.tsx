@@ -35,17 +35,12 @@ export default function TopBar() {
       <div className="topLeft">
         <Link to="/" className="topLogo">
           <span className="logo-dot"></span>
-          wanderlog
+          roamly
         </Link>
       </div>
 
       <div className={`topCenter ${mobileMenuOpen ? "open" : ""}`}>
         <ul className="topList">
-          <li className="topListItem" onClick={() => setMobileMenuOpen(false)}>
-            <Link className="link" to="/">
-              Home
-            </Link>
-          </li>
           <li className="topListItem" onClick={() => setMobileMenuOpen(false)}>
             <Link className="link" to="/trending">
               Trending

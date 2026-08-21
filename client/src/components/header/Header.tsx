@@ -27,7 +27,7 @@ export default function Header() {
 
           <h1 className="heroTitle">
             Welcome to{" "}
-            <span className="text-gradient-primary">wanderlog</span>.
+            <span className="text-gradient-primary">roamly</span>.
             <br />
             <span className="heroTitleSub">
               I explore the world through{" "}

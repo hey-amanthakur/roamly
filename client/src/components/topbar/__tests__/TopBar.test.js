@@ -37,12 +37,12 @@ describe("TopBar", () => {
 
   it("renders logo", () => {
     renderTopBar();
-    expect(screen.getByText("wanderlog")).toBeInTheDocument();
+    expect(screen.getByText("roamly")).toBeInTheDocument();
   });
 
-  it("renders Home and Trending links for logged out users", () => {
+  it("renders Trending link and no Home link for logged out users", () => {
     renderTopBar();
-    expect(screen.getByText("Home")).toBeInTheDocument();
+    expect(screen.queryByText("Home")).not.toBeInTheDocument();
     expect(screen.getByText("Trending")).toBeInTheDocument();
     expect(screen.getByText("LOGIN")).toBeInTheDocument();
     expect(screen.getByText("REGISTER")).toBeInTheDocument();
