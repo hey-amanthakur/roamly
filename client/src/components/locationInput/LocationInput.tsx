@@ -25,7 +25,7 @@ export default function LocationInput({ location, onChange }: LocationInputProps
   };
 
   const filteredPresets = PRESET_LOCATIONS.filter((loc: Location) =>
-    customName.length > 0 && loc.name.toLowerCase().includes(customName.toLowerCase())
+    customName.length === 0 || loc.name.toLowerCase().includes(customName.toLowerCase())
   );
 
   return (
@@ -37,9 +37,7 @@ export default function LocationInput({ location, onChange }: LocationInputProps
           placeholder="Where was this taken?"
           value={customName}
           onChange={handleCustom}
-          onFocus={() => {
-            if (customName.length > 0) setShowPresets(true);
-          }}
+          onFocus={() => setShowPresets(true)}
           onBlur={() => setTimeout(() => setShowPresets(false), 200)}
         />
         <button
