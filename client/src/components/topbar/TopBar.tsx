@@ -98,19 +98,35 @@ export default function TopBar() {
           <i className={`fas ${theme === "dark" ? "fa-sun" : "fa-moon"}`}></i>
         </button>
 
-        {user ? (
-          <Link to="/settings">
-            <img
-              className="topImg"
-              src={
-                user.profilePic
-                  ? `${IMAGES_URL}/${user.profilePic}?v=${user.updatedAt}`
-                  : `${IMAGES_URL}/${DEFAULT_AVATAR}`
-              }
-              alt={user.username}
-            />
-          </Link>
-        ) : (
+         {user ? (
+           <Link to="/settings" className="topImgContainer">
+             {user.profilePic ? (
+               <img
+                 className="topImg"
+                src={`${IMAGES_URL}/${user.profilePic}`}
+                alt={user.username}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (target.src !== `${IMAGES_URL}/${DEFAULT_AVATAR}`) {
+                    target.src = `${IMAGES_URL}/${DEFAULT_AVATAR}`;
+                  } else {
+                    // Replace broken image with a fallback icon element entirely
+                    const parent = target.parentElement;
+                    if (parent) {
+                      parent.innerHTML = `<div class="topImgPlaceholder"><i class="fas fa-user"></i></div>`;
+                    }
+                  }
+                }}
+
+               />
+             ) : (
+               <div className="topImgPlaceholder">
+                 <i className="fas fa-user"></i>
+               </div>
+             )}
+           </Link>
+         ) : (
+
           <ul className="topList topListAuth">
             <li className="topListItem">
               <Link className="link" to="/login">

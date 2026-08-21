@@ -13,15 +13,20 @@ export default function LocationInput({ location, onChange }: LocationInputProps
   };
 
   const handleCustom = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setCustomName(e.target.value);
+    const val = e.target.value;
+    setCustomName(val);
     onChange({
-      name: e.target.value,
+      name: val,
       city: "",
       country: "",
       lat: null,
       lng: null,
     });
   };
+
+  const filteredPresets = PRESET_LOCATIONS.filter((loc: Location) =>
+    customName.length > 0 && loc.name.toLowerCase().includes(customName.toLowerCase())
+  );
 
   return (
     <div className="locationInput">
@@ -32,7 +37,9 @@ export default function LocationInput({ location, onChange }: LocationInputProps
           placeholder="Where was this taken?"
           value={customName}
           onChange={handleCustom}
-          onFocus={() => setShowPresets(true)}
+          onFocus={() => {
+            if (customName.length > 0) setShowPresets(true);
+          }}
           onBlur={() => setTimeout(() => setShowPresets(false), 200)}
         />
         <button
@@ -43,9 +50,9 @@ export default function LocationInput({ location, onChange }: LocationInputProps
           <i className="fas fa-map-marker-alt"></i>
         </button>
       </div>
-      {showPresets && (
+      {showPresets && filteredPresets.length > 0 && (
         <div className="presetDropdown">
-          {PRESET_LOCATIONS.map((loc: Location) => (
+          {filteredPresets.map((loc: Location) => (
             <div
               key={loc.name}
               className="presetItem"

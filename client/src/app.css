@@ -204,11 +204,13 @@ a {
    ───────────────────────────────────────────────────────────── */
 .top {
   width: 100%;
-  height: 60px;
+  height: 64px;
   position: sticky;
   top: 0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
   z-index: 999;
   background-color: rgb(var(--color-surface));
   border-bottom: 1px solid rgb(var(--color-line));
@@ -216,13 +218,16 @@ a {
 }
 
 .topLeft, .topRight {
-  flex: 3;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 16px;
 }
 
-.topCenter { flex: 6; }
+.topCenter { 
+  flex: 1; 
+  display: flex;
+  justify-content: center;
+}
 
 .topLogo {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -286,6 +291,31 @@ a {
   transition: box-shadow 0.2s;
 }
 .topImg:hover {
+  box-shadow: 0 0 0 3px var(--primary-200);
+}
+
+.topImgContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topImgPlaceholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary-50);
+  color: var(--primary-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--primary-400);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+.topImgPlaceholder:hover {
+  background: var(--primary-100);
   box-shadow: 0 0 0 3px var(--primary-200);
 }
 
@@ -491,15 +521,16 @@ a {
   margin: 0 20px 30px;
   display: flex;
   flex-direction: column;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   background: rgb(var(--color-surface));
   border: 1px solid rgb(var(--color-line));
   transition: all 0.3s var(--ease-smooth);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .post:hover {
-  transform: translate(-3px, -3px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-flat-primary);
 }
 
@@ -552,10 +583,10 @@ a {
 
 .postTitle {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  line-height: 1.3;
-  margin: 4px 0;
+  line-height: 1.4;
+  margin: 8px 0;
   cursor: pointer;
   transition: color 0.2s;
 }
@@ -588,7 +619,7 @@ a {
   font-size: 14px;
   line-height: 1.6;
   color: rgb(var(--color-muted));
-  margin-top: 10px;
+  margin-top: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -1186,7 +1217,13 @@ a {
    HOMEPAGE
    ───────────────────────────────────────────────────────────── */
 .home { display: flex; }
-.homeMain { flex: 9; }
+.homeMain { 
+  flex: 1; 
+  padding: 0 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
 
 .homeSort {
   display: flex;
