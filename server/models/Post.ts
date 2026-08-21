@@ -41,10 +41,6 @@ const PostSchema = new Schema<IPostDocument>(
       type: String,
       default: "",
     },
-    banner: {
-      type: String,
-      default: "",
-    },
     username: {
       type: String,
       required: true,

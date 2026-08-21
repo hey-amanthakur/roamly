@@ -44,8 +44,8 @@ export default function Post({ post }: PostProps) {
   return (
     <Link to={`/post/${post._id}`} className="link">
       <div className="post">
-        {(post.banner || post.photo) && (
-          <img className="postImg" src={`${IMAGES_URL}/${post.banner || post.photo}`} alt={post.title} />
+        {post.photo && (
+          <img className="postImg" src={`${IMAGES_URL}/${post.photo}`} alt={post.title} />
         )}
         <div className="postInfo">
           <div className="postCats">

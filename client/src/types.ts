@@ -40,7 +40,6 @@ export interface Post {
   desc: string;
   photos: string[];
   photo: string;
-  banner: string;
   username: string;
   userId: string;
   categories: string[];
